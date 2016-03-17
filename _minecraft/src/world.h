@@ -160,7 +160,14 @@ public :
 
 		// normal recursion (with many branches)
 
-		std::uniform_int_distribution<int> dist(-1, 1);
+		// reduce variation around average proportionally to distance between interpolated tiles (20% of distance)
+		// (can also use 100 / pow(2, prof) since we split in half each time)
+		int maxVariationX = 0.2f * (x2 - x1);
+		std::uniform_int_distribution<int> distX(-maxVariationX, maxVariationX);
+		int maxVariationY = 0.2f * (y4 - y1);
+		std::uniform_int_distribution<int> distY(-maxVariationY, maxVariationY);
+		int maxVariationXY = (int) floor(0.2f * ((x2 - x1) + (y4 - y1)) / 2);  // theoretically dist is a sqrt but expensive
+		std::uniform_int_distribution<int> distXY(-maxVariationXY, maxVariationXY);
 
 		// use some wrong index values to detect errors if those values are used but should not
 		int midX = -1;
@@ -173,16 +180,15 @@ public :
 			// compute height at 5 pillar positions
 
 			// left
-
-			load_pile(x1, midY, computeAverageHeight(x1, y1, x1, y4, dist(random_engine)));
+			load_pile(x1, midY, computeAverageHeight(x1, y1, x1, y4, distY(random_engine)));
 			// bottom (if we consider bottom-left coords, although matrix is probably top-left but in 3D quite arbitrary)
-			load_pile(midX, y1, computeAverageHeight(x1, y1, x2, y1, dist(random_engine)));
+			load_pile(midX, y1, computeAverageHeight(x1, y1, x2, y1, distX(random_engine)));
 			// right
-			load_pile(x2, midY, computeAverageHeight(x2, y1, x2, y4, dist(random_engine)));
+			load_pile(x2, midY, computeAverageHeight(x2, y1, x2, y4, distY(random_engine)));
 			// top
-			load_pile(midX, y4, computeAverageHeight(x1, y4, x2, y4, dist(random_engine)));
+			load_pile(midX, y4, computeAverageHeight(x1, y4, x2, y4, distX(random_engine)));
 			// center
-			load_pile(midX, midY, computeAverageHeight(x1, y1, x2, y1, x2, y4, x1, y4, dist(random_engine)));
+			load_pile(midX, midY, computeAverageHeight(x1, y1, x2, y1, x2, y4, x1, y4, distXY(random_engine)));
 			
 			// bottom-left quarter
 			generate_piles(x1, y1, midX, y1, midX, midY, x1, midY, prof + 1, profMax);
@@ -201,9 +207,9 @@ public :
 			// Y size must be 2 only, so only compute 2 midX pillars and 2 halves
 
 			// bottom
-			load_pile(midX, y1, computeAverageHeight(x1, y1, x2, y1, dist(random_engine)));
+			load_pile(midX, y1, computeAverageHeight(x1, y1, x2, y1, distX(random_engine)));
 			// top
-			load_pile(midX, y4, computeAverageHeight(x1, y4, x2, y4, dist(random_engine)));
+			load_pile(midX, y4, computeAverageHeight(x1, y4, x2, y4, distX(random_engine)));
 
 			// left half
 			generate_piles(x1, y1, midX, y1, midX, y4, x1, y4, prof + 1, profMax);
@@ -215,9 +221,9 @@ public :
 			// X size must be 2 only, so only compute 2 midY pillars and 2 halves
 
 			// left
-			load_pile(x1, midY, computeAverageHeight(x1, y1, x1, y4, dist(random_engine)));
+			load_pile(x1, midY, computeAverageHeight(x1, y1, x1, y4, distY(random_engine)));
 			// right
-			load_pile(x2, midY, computeAverageHeight(x2, y1, x2, y4, dist(random_engine)));
+			load_pile(x2, midY, computeAverageHeight(x2, y1, x2, y4, distY(random_engine)));
 
 			// bottom half
 			generate_piles(x1, y1, x2, y1, x2, midY, x1, midY, prof + 1, profMax);
@@ -307,12 +313,6 @@ public :
 	{
 		glEnable(GL_COLOR_MATERIAL);
 
-//		NYCube * cube = getCube(0, 0, 0);
-//		cube->_Type = NYCubeType::CUBE_TERRE;
-//
-//		cube = getCube(0, 1, 0);
-//		cube->_Type = NYCubeType::CUBE_EAU;
-
 		// iterate on world 3D tile matrix
 		for (int x = 0; x<MAT_SIZE_CUBES; x++)
 			for (int y = 0; y<MAT_SIZE_CUBES; y++)
@@ -330,6 +330,9 @@ public :
 						glPopMatrix();
 					}
 				}
+
+		glDisable(GL_COLOR_MATERIAL);
+
 	}
 
 private:

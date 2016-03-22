@@ -23,7 +23,7 @@
 #include "RuntimeCompiler/AUArray.h"
 
 // Game
-#include "world.h"
+class NYWorld;
 
 // Singleton Game
 class Game : public IObjectFactoryListener
@@ -42,6 +42,11 @@ public:
 
 	virtual void OnConstructorsAdded() override;
 	// ~IObjectFactoryListener
+
+	// Game global variables
+	NYWorld * g_world = nullptr;
+	NYRenderer * g_renderer = NULL;
+	NYTimer * g_timer = NULL;
 
 private:
 	Game() {};
@@ -77,26 +82,12 @@ private:
 	// params
 	float cameraXRotateMouseRatio = -0.5f; // negative to rotate CW on the right
 	float cameraYRotateMouseRatio = -0.4f; // inverted axis
-	float cameraZMotionWheelRatio = 0.4f; // wheel up to rise
+	float cameraZoomWheelRatio = 10.f; // wheel up to zoom
 	float cameraXYMotionMouseRatio = 0.5f; // "speed" of XY motion with ctrl + mouse move
+	float cameraXZMotionMouseRatio = 0.5f; // "speed" of XZ motion with middle button mouse pan (probably = XY ratio)
+	float cameraKeyboardMotionSpeed = 50.f;
 
-	NYRenderer * g_renderer = NULL;
-	NYTimer * g_timer = NULL;
-	int g_nb_frames = 0;
-	float g_elapsed_fps = 0;
-	int g_main_window_id;
-	int g_mouse_btn_gui_state = 0;
-	bool g_fullscreen = false;
-	// added last mouse coordinates (simulate start at center, but will detect mouse arriving from outside)
-	int lastMouseX = 400;
-	int lastMouseY = 300;
-	// added ctrl state (true if left ctrl is pressed)
-	bool leftCtrlPressed = false;
-	bool mouseLeftButtonPressed = false;
-	bool mouseMiddleButtonPressed = false;
-	bool mouseRightButtonPressed = false;
-
-	//GUI 
+	//GUI
 	GUIScreenManager * g_screen_manager = nullptr;
 	GUIBouton * BtnParams = nullptr;
 	GUIBouton * BtnClose = nullptr;
@@ -106,11 +97,34 @@ private:
 	GUIScreen * g_screen_jeu = nullptr;
 	GUISlider * g_slider_cameraXRotateMouseRatio = nullptr;
 	GUISlider * g_slider_cameraYRotateMouseRatio = nullptr;
-	GUISlider * g_slider_cameraZMotionWheelRatio = nullptr;
+	GUISlider * g_slider_cameraZoomWheelRatio = nullptr;
 	GUISlider * g_slider_cameraXYMotionMouseRatio = nullptr;
+	GUISlider * g_slider_cameraXZMotionMouseRatio = nullptr;
+	GUISlider * g_slider_cameraKeyboardMotionSpeed = nullptr;
+	
+		// state vars
+	
+	int g_nb_frames = 0;
+	float g_elapsed_fps = 0;
+	int g_main_window_id;
+	int g_mouse_btn_gui_state = 0;
+	bool g_fullscreen = false;
 
-	// Game global variables
-	NYWorld * g_world = nullptr;
+	// added last mouse coordinates (simulate start at center, but will detect mouse arriving from outside)
+	int lastMouseX = 400;
+	int lastMouseY = 300;
+	// added ctrl state (true if left ctrl is pressed)
+	bool leftCtrlPressed = false;
+	bool mouseLeftButtonPressed = false;
+	bool mouseMiddleButtonPressed = false;
+	bool mouseRightButtonPressed = false;
+	// keyboard motion input
+	bool moveForwardKeyPressed = false;
+	bool moveBackwardKeyPressed = false;
+	bool moveLeftKeyPressed = false;
+	bool moveRightKeyPressed = false;
+	bool moveUpwardKeyPressed = false;
+	bool moveDownwardKeyPressed = false;
 
 };
 

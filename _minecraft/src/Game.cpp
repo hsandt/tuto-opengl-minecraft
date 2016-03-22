@@ -156,7 +156,7 @@ bool Game::Init(int argc, char* argv[])
 	g_renderer->setRender2DFun([]() {Instance().render2d(); });
 	g_renderer->setLightsFun([]() {Instance().setLights(); });
 	g_renderer->setBackgroundColor(NYColor());
-	g_renderer->initialise();
+	g_renderer->initialise(true);  // modified to activate post-process
 
 	//On applique la config du renderer
 	glViewport(0, 0, g_renderer->_ScreenWidth, g_renderer->_ScreenHeight);
@@ -221,13 +221,13 @@ bool Game::Init(int argc, char* argv[])
 	y += 10;
 
 	// slider for camera Z by wheel
-	g_slider_cameraZMotionWheelRatio = new GUISlider();
-	g_slider_cameraZMotionWheelRatio->setMaxMin(1, 0);
-	g_slider_cameraZMotionWheelRatio->setValue(cameraZMotionWheelRatio); // init with param value to ensure sync
-	g_slider_cameraZMotionWheelRatio->Visible = true;
-	g_screen_params->addLabeledElement(x, y, "Camera Z motion: ", g_slider_cameraZMotionWheelRatio);
+	g_slider_cameraZoomWheelRatio = new GUISlider();
+	g_slider_cameraZoomWheelRatio->setMaxMin(20, 0);
+	g_slider_cameraZoomWheelRatio->setValue(cameraZoomWheelRatio); // init with param value to ensure sync
+	g_slider_cameraZoomWheelRatio->Visible = true;
+	g_screen_params->addLabeledElement(x, y, "Camera zoom speed: ", g_slider_cameraZoomWheelRatio);
 	// add vertical space to prepare position of next element
-	y += g_slider_cameraZMotionWheelRatio->Height + 1;
+	y += g_slider_cameraZoomWheelRatio->Height + 1;
 	y += 10;
 
 	// slider for camera XY plane motion
@@ -239,6 +239,27 @@ bool Game::Init(int argc, char* argv[])
 	// add vertical space to prepare position of next element
 	y += g_slider_cameraXYMotionMouseRatio->Height + 1;
 	y += 10;
+
+	// slider for camera XY plane motion
+	g_slider_cameraXZMotionMouseRatio = new GUISlider();
+	g_slider_cameraXZMotionMouseRatio->setMaxMin(1, 0);
+	g_slider_cameraXZMotionMouseRatio->setValue(cameraXZMotionMouseRatio); // init with param value to ensure sync
+	g_slider_cameraXZMotionMouseRatio->Visible = true;
+	g_screen_params->addLabeledElement(x, y, "Camera XZ motion: ", g_slider_cameraXZMotionMouseRatio);
+	// add vertical space to prepare position of next element
+	y += g_slider_cameraXZMotionMouseRatio->Height + 1;
+	y += 10;
+
+	// slider for camera WASD local
+	g_slider_cameraKeyboardMotionSpeed = new GUISlider();
+	g_slider_cameraKeyboardMotionSpeed->setMaxMin(200, 50);
+	g_slider_cameraKeyboardMotionSpeed->setValue(cameraKeyboardMotionSpeed); // init with param value to ensure sync
+	g_slider_cameraKeyboardMotionSpeed->Visible = true;
+	g_screen_params->addLabeledElement(x, y, "Camera WASD motion: ", g_slider_cameraKeyboardMotionSpeed);
+	// add vertical space to prepare position of next element
+	y += g_slider_cameraKeyboardMotionSpeed->Height + 1;
+	y += 10;
+	
 
 	//Ecran a rendre
 	g_screen_manager->setActiveScreen(g_screen_jeu);
@@ -254,6 +275,7 @@ bool Game::Init(int argc, char* argv[])
 	// generate world
 	g_world = new NYWorld();
 	g_world->init_world(600);
+	g_world->add_world_to_vbo();
 
 	//Init Timer
 	g_timer = new NYTimer();
@@ -263,6 +285,7 @@ bool Game::Init(int argc, char* argv[])
 
 	glutMainLoop();
 
+	return true;
 }
 
 void Game::Clean()
@@ -309,11 +332,12 @@ void Game::update(void)
 	// RCC++
 	// Time in userspace, ignoring frametime and whether we are paused, compiling, etc.
 	// That seems most appropriate to the filechangenotifier
-	float m_GameSpeed = 1.f;
-	float fSessionTimeDelta = g_timer->getElapsedSeconds(true);
-	float fClampedDelta = min(fSessionTimeDelta * m_GameSpeed, 0.1f); // used for IObject updates
+//	float m_GameSpeed = 1.f;
+	// don't call getElapsed twice, it will mess up fps!
+//	float fSessionTimeDelta = g_timer->getElapsedSeconds(true);
+//	float fClampedDelta = min(fSessionTimeDelta * m_GameSpeed, 0.1f); // used for IObject updates
 
-	m_pRuntimeObjectSystem->GetFileChangeNotifier()->Update(fSessionTimeDelta);
+//	m_pRuntimeObjectSystem->GetFileChangeNotifier()->Update(fSessionTimeDelta);
 
 //	if (m_pEnv->sys->pRuntimeObjectSystem->GetIsCompiling() && m_CompileStartedTime == 0.0)
 //	{
@@ -384,6 +408,22 @@ void Game::internalUpdate(void)
 			g_nb_frames = 0;
 		}
 
+		if (mouseLeftButtonPressed || mouseMiddleButtonPressed || mouseRightButtonPressed)
+		{
+			float forwardMotionInput = 0;
+			float horizontalMotionInput = 0;
+			float verticalMotionInput = 0;
+			if (moveForwardKeyPressed) forwardMotionInput = 1.f;
+			else if (moveBackwardKeyPressed) forwardMotionInput = -1.f;
+			if (moveLeftKeyPressed) horizontalMotionInput = -1.f;
+			else if (moveRightKeyPressed) horizontalMotionInput = 1.f;
+			if (moveUpwardKeyPressed) verticalMotionInput = 1.f;
+			else if (moveDownwardKeyPressed) verticalMotionInput = -1.f;
+			// I tested and prefer forward/backward motion projected on XY rather than camera _Direction
+			NYVert3Df motionInput = g_renderer->_Camera->_ProjectedForward * forwardMotionInput + g_renderer->_Camera->_NormVec * horizontalMotionInput + g_renderer->_Camera->_UpRef * verticalMotionInput;
+			g_renderer->_Camera->move(motionInput * elapsed * cameraKeyboardMotionSpeed);
+		}
+
 		//Rendu
 		g_renderer->render(elapsed);
 
@@ -419,7 +459,8 @@ void Game::renderObjects(void)
 	glDisable(GL_COLOR_MATERIAL);
 
 	glPushMatrix();
-	g_world->render_world_old_school();
+//	g_world->render_world_old_school();
+	g_world->render_world_vbo();
 	glPopMatrix();
 
 	/*
@@ -658,17 +699,31 @@ void Game::keyboardDownFunction(unsigned char key, int p1, int p2)
 			g_fullscreen = false;
 		}
 	}
+
+	if (key == 'w') moveForwardKeyPressed = true;
+	if (key == 's')	moveBackwardKeyPressed = true;
+	if (key == 'a')	moveLeftKeyPressed = true;
+	if (key == 'd')	moveRightKeyPressed = true;
+	if (key == 'q')	moveDownwardKeyPressed = true;
+	if (key == 'e')	moveUpwardKeyPressed = true;
 }
 
 void Game::keyboardUpFunction(unsigned char key, int p1, int p2)
 {
+	if (key == 'w') moveForwardKeyPressed = false;
+	if (key == 's')	moveBackwardKeyPressed = false;
+	if (key == 'a')	moveLeftKeyPressed = false;
+	if (key == 'd')	moveRightKeyPressed = false;
+	if (key == 'q')	moveDownwardKeyPressed = false;
+	if (key == 'e')	moveUpwardKeyPressed = false;
 }
 
 void Game::mouseWheelFunction(int wheel, int dir, int x, int y)
 {
 	//Log::log(Log::USER_INFO, ("mouseWheelFunction wheel: " + toString(wheel) + ", dir: " + toString(dir) + ", x: " + toString(x) + ", y: " + toString(y)).c_str());
 
-	g_renderer->_Camera->move(NYVert3Df(0, 0, 1) * dir * cameraZMotionWheelRatio);
+	// move forward / backward
+	g_renderer->_Camera->move(g_renderer->_Camera->_Direction * dir * cameraZoomWheelRatio);
 }
 
 void Game::mouseFunction(int button, int state, int x, int y)
@@ -750,17 +805,25 @@ void Game::mouseMoveFunction(int x, int y, bool pressed)
 		lastMouseX = x;
 		lastMouseY = y;
 
-		// if left ctrl or middle mouse button is pressed, translate in XY
+		// if left mouse button is pressed, translate forward and rotate around Z (yaw)
 		// a) translate forward following camera target
 		// b) translate on forward projected on world XY plane (crossProd(_UpRef, _NormVec))
 		// here: a)
-		if (leftCtrlPressed || mouseMiddleButtonPressed)
+		if (mouseLeftButtonPressed)
 		{
 			// coords are top-left so for negative delta Y, move UP!
-			g_renderer->_Camera->move((g_renderer->_Camera->_NormVec * deltaMouseX + g_renderer->_Camera->_Direction * (-deltaMouseY)) * cameraXYMotionMouseRatio);
+			g_renderer->_Camera->rotate(deltaMouseX * cameraXRotateMouseRatio);
+			g_renderer->_Camera->move(g_renderer->_Camera->_Direction * (-deltaMouseY) * cameraXYMotionMouseRatio);
 		}
 
-		// translate in camera XZ with right-hold mouse move
+		// translate in camera XZ with middle button hold
+		if (mouseMiddleButtonPressed)
+		{
+			// update camera view on passive (no click) mouse motion
+			g_renderer->_Camera->move((g_renderer->_Camera->_NormVec * deltaMouseX + g_renderer->_Camera->_UpRef * (-deltaMouseY)) * cameraXZMotionMouseRatio);
+		}
+
+		// rotate head with right-hold mouse move
 		if (mouseRightButtonPressed)
 		{
 			// update camera view on passive (no click) mouse motion
@@ -771,12 +834,12 @@ void Game::mouseMoveFunction(int x, int y, bool pressed)
 
 	if (pressed && mouseTraite)
 	{
-		Log::log(Log::USER_INFO, ("slider value update to: " + toString(g_slider_cameraXRotateMouseRatio->Value) + ", " + toString(g_slider_cameraYRotateMouseRatio->Value) + ", Z: " + toString(g_slider_cameraZMotionWheelRatio->Value)).c_str());
+		Log::log(Log::USER_INFO, ("slider value update to: " + toString(g_slider_cameraXRotateMouseRatio->Value) + ", " + toString(g_slider_cameraYRotateMouseRatio->Value) + ", Z: " + toString(g_slider_cameraZoomWheelRatio->Value)).c_str());
 		//Mise a jour des variables liées aux sliders
 		// oppose for negative values
 		cameraXRotateMouseRatio = -g_slider_cameraXRotateMouseRatio->Value;
 		cameraYRotateMouseRatio = -g_slider_cameraYRotateMouseRatio->Value;
-		cameraZMotionWheelRatio = g_slider_cameraZMotionWheelRatio->Value;
+		cameraZoomWheelRatio = g_slider_cameraZoomWheelRatio->Value;
 		cameraXYMotionMouseRatio = g_slider_cameraXYMotionMouseRatio->Value;
 	}
 

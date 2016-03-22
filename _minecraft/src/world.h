@@ -6,6 +6,8 @@
 #include "gl/glew.h"
 #include "gl/freeglut.h" 
 #include "engine/utils/types_3d.h"
+#include "engine/render/graph/tex_manager.h"
+#include "Game.h" // split in cpp and h to avoid this stuff
 #include "cube.h"
 #include "chunk.h"
 
@@ -17,7 +19,7 @@ typedef uint8 NYAxis;
 #define NY_AXIS_Y 0x02
 #define NY_AXIS_Z 0x04
 
-#define MAT_SIZE 2 //en nombre de chunks
+#define MAT_SIZE 3 //en nombre de chunks
 #define MAT_HEIGHT 2 //en nombre de chunks
 #define MAT_SIZE_CUBES (MAT_SIZE * NYChunk::CHUNK_SIZE)
 #define MAT_HEIGHT_CUBES (MAT_HEIGHT * NYChunk::CHUNK_SIZE)
@@ -34,7 +36,7 @@ public :
 	NYWorld()
 	{
 		cubeColors[NYCubeType::CUBE_HERBE] = NYColor(0.f / 255.f, 123.f / 255.f, 12.f / 255.f, 1.f);
-		cubeColors[NYCubeType::CUBE_EAU] = NYColor(98.f / 255.f, 146.f / 255.f, 134.f / 255.f, 0.8f);
+		cubeColors[NYCubeType::CUBE_EAU] = NYColor(20.f / 255.f, 70.f / 255.f, 180.f / 255.f, 1.f);  // if you make it transparent, adapt Cube::isSolid
 		cubeColors[NYCubeType::CUBE_TERRE] = NYColor(148.f / 255.f, 62.f / 255.f, 15.f / 255.f, 1.f);
 		cubeColors[NYCubeType::CUBE_AIR] = NYColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 0.0f);
 
@@ -239,6 +241,9 @@ public :
 
 	void init_world(int profmax = -1)
 	{
+		// chargement texture
+		_TexGrass = NYTexManager::getInstance()->loadTexture(std::string("textures/grass.png"));
+
 		_cprintf("Creation du monde %f \n",_FacteurGeneration);
 
 		srand(6665);
@@ -266,6 +271,14 @@ public :
 			for(int y=0;y<MAT_SIZE;y++)
 				for(int z=0;z<MAT_HEIGHT;z++)
 					_Chunks[x][y][z]->disableHiddenCubes();
+
+		// set camera et acceptable position
+		int maxHeight = 0;
+//		for (int i = 0)
+		// do not look completely downward, deactivated for now (for an editor and not a character, maybe acceptable)
+		Game::Instance().g_renderer->_Camera->setPosition(NYVert3Df(12, 12, 50) * NYCube::CUBE_SIZE);
+		Game::Instance().g_renderer->_Camera->setLookAt(NYVert3Df(16, 16, 0) * NYCube::CUBE_SIZE);
+		
 	}
 
 	NYCube * pick(NYVert3Df  pos, NYVert3Df  dir, NYPoint3D * point)
@@ -280,18 +293,26 @@ public :
 		return axis;
 	}
 
-
 	void render_world_vbo(void)
 	{
-		for(int x=0;x<MAT_SIZE_CUBES;x++)
-			for(int y=0;y<MAT_SIZE_CUBES;y++)
-				for(int z=0;z<MAT_HEIGHT_CUBES;z++)
+
+		glEnable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, _TexGrass->Texture);
+
+		// iterate on chunks NOT cubes
+		for(int x=0;x<MAT_SIZE;x++)
+			for(int y=0;y<MAT_SIZE;y++)
+				for(int z=0;z<MAT_HEIGHT;z++)
 				{
 					glPushMatrix();
+					// set whole chunk origin to bottom-left-close corner in the world
 					glTranslatef((float)(x*NYChunk::CHUNK_SIZE*NYCube::CUBE_SIZE),(float)(y*NYChunk::CHUNK_SIZE*NYCube::CUBE_SIZE),(float)(z*NYChunk::CHUNK_SIZE*NYCube::CUBE_SIZE));
 					_Chunks[x][y][z]->render();
 					glPopMatrix();
 				}
+
+		glDisable(GL_TEXTURE_2D);
 	}
 
 	void add_world_to_vbo(void)
@@ -311,8 +332,6 @@ public :
 
 	void render_world_old_school(void)
 	{
-		glEnable(GL_COLOR_MATERIAL);
-
 		// iterate on world 3D tile matrix
 		for (int x = 0; x<MAT_SIZE_CUBES; x++)
 			for (int y = 0; y<MAT_SIZE_CUBES; y++)
@@ -331,11 +350,13 @@ public :
 					}
 				}
 
-		glDisable(GL_COLOR_MATERIAL);
-
 	}
 
 private:
+
+	// texture files
+	NYTexFile * _TexGrass;
+
 	// Compute average height between 2 XY coords, adding an offset and clamping
 	int computeAverageHeight(int x1, int y1, int x2, int y2, int offset)
 	{

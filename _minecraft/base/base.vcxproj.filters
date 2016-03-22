@@ -49,6 +49,18 @@
     <ClCompile Include="..\..\_engine\src\RuntimeObjectSystem\SimpleSerializer\SimpleSerializer.cpp">
       <Filter>RuntimeObjectSystem</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\_engine\src\engine\render\graph\tex_manager.cpp">
+      <Filter>engine\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\_engine\src\engine\utils\ny_utils.cpp">
+      <Filter>engine\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\_engine\src\engine\utils\quaternion.c">
+      <Filter>engine\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\_engine\src\engine\utils\types_3d.cpp">
+      <Filter>engine\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="engine">
@@ -68,6 +80,12 @@
     </Filter>
     <Filter Include="RuntimeObjectSystem">
       <UniqueIdentifier>{55665dcd-efe2-4099-836e-8089fae4ca13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{048a36a1-81f5-4a81-84fb-e93cea7eb2a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\utils">
+      <UniqueIdentifier>{75d22dc0-a117-4bdf-a35a-6c925fc9da74}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -176,5 +194,34 @@
     <ClInclude Include="..\..\_engine\src\RuntimeObjectSystem\SimpleSerializer\SimpleSerializer.h">
       <Filter>RuntimeObjectSystem</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\_engine\src\engine\render\graph\tex_manager.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\_engine\src\engine\utils\ny_utils.h">
+      <Filter>engine\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\_engine\src\engine\utils\quaternion.h">
+      <Filter>engine\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\_engine\src\engine\utils\types.h">
+      <Filter>engine\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\_engine\src\engine\utils\types_3d.h">
+      <Filter>engine\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\_engine\src\engine\render\text_engine.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\run\shaders\psbase.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\run\shaders\vsbase.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\run\shaders\postprocess\pshader.glsl">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

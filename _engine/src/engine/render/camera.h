@@ -18,6 +18,7 @@ class NYCamera
 		NYVert3Df _UpVec; ///< Vecteur up de la camera
 		NYVert3Df _NormVec; ///< Si on se place dans la camera, indique la droite	
 		NYVert3Df _UpRef; ///< Ce qu'on considère comme le "haut" dans notre monde (et pas le up de la cam)
+		NYVert3Df _ProjectedForward; ///< ADDED to ease camera motion: _Direction projected on XY plane
 
 		NYCamera()
 		{
@@ -95,6 +96,8 @@ class NYCamera
 			// if camera not looking upward or downward, no problem
 			_NormVec = _Direction.vecProd(_UpRef).normalize();
 			_UpVec = _NormVec.vecProd(_Direction);
+			// compute projected forward either by projecting _Direction on XY or getting crossprod between world Up and camera Right
+			_ProjectedForward = _UpRef.vecProd(_NormVec);
 		}
 
 		/**

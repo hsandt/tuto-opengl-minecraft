@@ -36,6 +36,7 @@ class NYRenderer
 		GLuint _DepthTexPP; ///< Rendu du buffer de profondeur, pour post process
 		GLuint _FBO; ///< Front buffer Object : pour effectuer un render to texture
 		GLuint _ProgramPP; ///< Le programme de shader pour le post process
+		GLuint _ProgramCube;
 
 		NYColor _BackGroundColor; ///< Couleur de fond. La modifier avec setBackgroundColor()
 
@@ -45,6 +46,45 @@ class NYRenderer
 
 		static float _DeltaTime; ///< Temps écoulé depuis la dernière frame (passe a la fonction render)
 		static float _DeltaTimeCumul; ///< Temps écoulé depuis le lancement de l'appli
+
+		//GESTION DES SHADERS
+
+		/**
+		* Permet de créer un programme de shaders, a activer quand on veut
+		*/
+		// moved to public since useful to create program and loading/linking shaders easily
+		GLuint createProgram(char * filePixelShader, char * fileVertexShader)
+		{
+			GLuint fs = 0;
+			if (filePixelShader != NULL)
+				fs = loadShader(GL_FRAGMENT_SHADER, filePixelShader);
+
+			GLuint vs = 0;
+			if (fileVertexShader != NULL)
+				vs = loadShader(GL_VERTEX_SHADER, fileVertexShader);
+
+			if (fs > 0 || vs > 0)
+			{
+				GLuint prog = glCreateProgram();
+				if (fs > 0)
+				{
+					glAttachShader(prog, fs);
+					checkGlError("glAttachShader(prog, fs);");
+				}
+
+				if (vs > 0)
+				{
+					glAttachShader(prog, vs);
+					checkGlError("glAttachShader(prog, vs);");
+				}
+				glLinkProgram(prog);
+				checkGlError("glLinkProgram(prog);");
+
+				return prog;
+			}
+
+			return 0;
+		}
 
 	private : 
 		static NYRenderer * _Me; ///< Singleton
@@ -310,44 +350,6 @@ class NYRenderer
 			//Fini
 			glutSwapBuffers();
 			glutPostRedisplay();
-		}
-
-		//GESTION DES SHADERS
-		
-		/**
-		  * Permet de créer un programme de shaders, a activer quand on veut
-		  */
-		GLuint createProgram(char * filePixelShader, char * fileVertexShader)
-		{
-			GLuint fs = 0;
-			if(filePixelShader != NULL)
-				fs = loadShader(GL_FRAGMENT_SHADER,filePixelShader);
-
-			GLuint vs = 0;
-			if(fileVertexShader != NULL)
-				vs = loadShader(GL_VERTEX_SHADER,fileVertexShader);
-
-			if(fs > 0 || vs > 0)
-			{
-				GLuint prog = glCreateProgram();
-				if(fs > 0)
-				{
-					glAttachShader(prog, fs);
-					checkGlError("glAttachShader(prog, fs);");	
-				}
-
-				if(vs > 0)
-				{
-					glAttachShader(prog, vs);
-					checkGlError("glAttachShader(prog, vs);");	
-				}
-				glLinkProgram(prog);
-				checkGlError("glLinkProgram(prog);");
-
-				return prog;
-			}
-
-			return 0;
 		}
 
 		static void checkGlError(char * call)

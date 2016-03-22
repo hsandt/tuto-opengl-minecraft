@@ -29,7 +29,10 @@ class NYWorld
 public :
 	NYChunk * _Chunks[MAT_SIZE][MAT_SIZE][MAT_HEIGHT];
 	int _MatriceHeights[MAT_SIZE_CUBES][MAT_SIZE_CUBES];
+	int _MatriceHeightsTmp[MAT_SIZE_CUBES][MAT_SIZE_CUBES];
 	float _FacteurGeneration;
+	float _HeightDiffFactor = 0.2f;  // the higher, the bigger ground height variations
+	int _WaterLevel = 10;
 
 	NYColor cubeColors[4];
 
@@ -116,19 +119,23 @@ public :
 	{
 		if (!onlyIfZero || _MatriceHeights[x][y] == 0)
 		{
+			// interval safety
+			if (height < 1)
+				height = 1;
+			if (height > MAT_HEIGHT_CUBES)
+				height = MAT_HEIGHT_CUBES;
+
 			_MatriceHeights[x][y] = height;
-			NYCube * cube = getCube(x, y, 0);
-			cube->_Type = NYCubeType::CUBE_EAU;
-			for (int z = 1; z < height - 1; ++z)
+			NYCube * cube;
+			for (int z = 0; z < height - 1; ++z)
 			{
 				cube = getCube(x, y, z);
+				cube->_Draw = true;
 				cube->_Type = NYCubeType::CUBE_TERRE;
 			}
-			if (height > 1)
-			{
-				cube = getCube(x, y, height - 1);  // for a height of 3, setup 3 cubes at z = 0, 1 and 2 (therefore a height if 0 is impossible as we need at least water)
-				cube->_Type = NYCubeType::CUBE_HERBE;
-			}
+			cube = getCube(x, y, height - 1);  // for a height of 3, setup 3 cubes at z = 0, 1 and 2 (therefore a height if 0 is impossible as we need at least water)
+			cube->_Draw = true;
+			cube->_Type = NYCubeType::CUBE_HERBE;
 		}
 	}
 
@@ -162,13 +169,13 @@ public :
 
 		// normal recursion (with many branches)
 
-		// reduce variation around average proportionally to distance between interpolated tiles (20% of distance)
+		// reduce variation around average proportionally to distance between interpolated tiles (X% of distance)
 		// (can also use 100 / pow(2, prof) since we split in half each time)
-		int maxVariationX = 0.2f * (x2 - x1);
+		int maxVariationX = _HeightDiffFactor * (x2 - x1);
 		std::uniform_int_distribution<int> distX(-maxVariationX, maxVariationX);
-		int maxVariationY = 0.2f * (y4 - y1);
+		int maxVariationY = _HeightDiffFactor * (y4 - y1);
 		std::uniform_int_distribution<int> distY(-maxVariationY, maxVariationY);
-		int maxVariationXY = (int) floor(0.2f * ((x2 - x1) + (y4 - y1)) / 2);  // theoretically dist is a sqrt but expensive
+		int maxVariationXY = (int) floor(_HeightDiffFactor * ((x2 - x1) + (y4 - y1)) / 2);  // theoretically dist is a sqrt but expensive so use Manhattan dist
 		std::uniform_int_distribution<int> distXY(-maxVariationXY, maxVariationXY);
 
 		// use some wrong index values to detect errors if those values are used but should not
@@ -234,9 +241,62 @@ public :
 		}
 	}
 
+	//On utilise un matrice temporaire _MatriceHeightsTmp à déclarer
+	//Penser à appeler la fonction a la fin de la génération (plusieurs fois si besoin)
 	void lisse(void)
 	{
+		int sizeWindow = 4;
+		memset(_MatriceHeightsTmp, 0x00, sizeof(int)*MAT_SIZE_CUBES*MAT_SIZE_CUBES);
+		for (int x = 0; x<MAT_SIZE_CUBES; x++)
+		{
+			for (int y = 0; y<MAT_SIZE_CUBES; y++)
+			{
+				//on moyenne sur une distance
+				int nb = 0;
+				for (int i = (x - sizeWindow < 0 ? 0 : x - sizeWindow);
+				i < (x + sizeWindow >= MAT_SIZE_CUBES ? MAT_SIZE_CUBES - 1 : x + sizeWindow); i++)
+				{
+					for (int j = (y - sizeWindow < 0 ? 0 : y - sizeWindow);
+					j <(y + sizeWindow >= MAT_SIZE_CUBES ? MAT_SIZE_CUBES - 1 : y + sizeWindow); j++)
+					{
+						_MatriceHeightsTmp[x][y] += _MatriceHeights[i][j];
+						nb++;
+					}
+				}
+				if (nb)
+					_MatriceHeightsTmp[x][y] /= nb;
+			}
+		}
 
+		//On reset les piles
+		for (int x = 0; x<MAT_SIZE_CUBES; x++)
+		{
+			for (int y = 0; y<MAT_SIZE_CUBES; y++)
+			{
+				load_pile(x, y, _MatriceHeightsTmp[x][y], false);
+			}
+		}
+	}
+
+	/// Fill world with water until given level (0 for no water)
+	void fill_water(int level)
+	{
+		for (int x = 0; x < MAT_SIZE_CUBES; x++)
+		{
+			for (int y = 0; y < MAT_SIZE_CUBES; y++)
+			{
+				// only fill columns lower or at water level with water
+				if (_MatriceHeights[x][y] < _WaterLevel)
+				{
+					_MatriceHeights[x][y] = _WaterLevel;
+					for (int z = 0; z < _WaterLevel; z++)
+					{
+						getCube(x, y, z)->_Draw = true;
+						getCube(x, y, z)->_Type = CUBE_EAU;
+					}
+				}
+			}
+		}
 	}
 
 	void init_world(int profmax = -1)
@@ -267,14 +327,19 @@ public :
 			MAT_SIZE_CUBES-1,MAT_SIZE_CUBES-1,
 			0,MAT_SIZE_CUBES-1,1,profmax);	
 
+//		lisse();
+		fill_water(_WaterLevel);
+
+		// disable cubes completely surrounded by other cubes
+		// do this before adding to VBO so that only visible cubes are added to the VBOs
 		for(int x=0;x<MAT_SIZE;x++)
 			for(int y=0;y<MAT_SIZE;y++)
 				for(int z=0;z<MAT_HEIGHT;z++)
 					_Chunks[x][y][z]->disableHiddenCubes();
 
+		add_world_to_vbo();
+
 		// set camera et acceptable position
-		int maxHeight = 0;
-//		for (int i = 0)
 		// do not look completely downward, deactivated for now (for an editor and not a character, maybe acceptable)
 		Game::Instance().g_renderer->_Camera->setPosition(NYVert3Df(12, 12, 50) * NYCube::CUBE_SIZE);
 		Game::Instance().g_renderer->_Camera->setLookAt(NYVert3Df(16, 16, 0) * NYCube::CUBE_SIZE);
@@ -295,10 +360,11 @@ public :
 
 	void render_world_vbo(void)
 	{
+		glDisable(GL_TEXTURE_2D);
 
-		glEnable(GL_TEXTURE_2D);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, _TexGrass->Texture);
+//		glEnable(GL_TEXTURE_2D);
+//		glActiveTexture(GL_TEXTURE0);
+//		glBindTexture(GL_TEXTURE_2D, _TexGrass->Texture);
 
 		// iterate on chunks NOT cubes
 		for(int x=0;x<MAT_SIZE;x++)
@@ -312,7 +378,7 @@ public :
 					glPopMatrix();
 				}
 
-		glDisable(GL_TEXTURE_2D);
+//		glDisable(GL_TEXTURE_2D);
 	}
 
 	void add_world_to_vbo(void)

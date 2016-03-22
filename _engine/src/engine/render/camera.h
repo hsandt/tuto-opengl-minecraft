@@ -19,6 +19,7 @@ class NYCamera
 		NYVert3Df _NormVec; ///< Si on se place dans la camera, indique la droite	
 		NYVert3Df _UpRef; ///< Ce qu'on considère comme le "haut" dans notre monde (et pas le up de la cam)
 		NYVert3Df _ProjectedForward; ///< ADDED to ease camera motion: _Direction projected on XY plane
+		NYFloatMatrix _InvertViewMatrix; ///< Pour les shaders, pour repasser de la modelview a la model
 
 		NYCamera()
 		{
@@ -160,6 +161,8 @@ class NYCamera
 		void look(void)
 		{
 			gluLookAt(_Position.X, _Position.Y,_Position.Z,_LookAt.X,_LookAt.Y,_LookAt.Z,_UpVec.X,_UpVec.Y,_UpVec.Z);
+			_InvertViewMatrix.createViewMatrix(_Position, _LookAt, _UpVec);
+			_InvertViewMatrix.invert();
 		}
 };
 

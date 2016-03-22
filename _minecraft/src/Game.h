@@ -29,6 +29,8 @@ class NYWorld;
 class Game : public IObjectFactoryListener
 {
 public:
+	virtual ~Game();
+
 	static Game& Instance()
 	{
 		static Game instance;
@@ -85,7 +87,7 @@ private:
 	float cameraZoomWheelRatio = 10.f; // wheel up to zoom
 	float cameraXYMotionMouseRatio = 0.5f; // "speed" of XY motion with ctrl + mouse move
 	float cameraXZMotionMouseRatio = 0.5f; // "speed" of XZ motion with middle button mouse pan (probably = XY ratio)
-	float cameraKeyboardMotionSpeed = 50.f;
+	float cameraKeyboardMotionSpeed = 100.f;
 
 	//GUI
 	GUIScreenManager * g_screen_manager = nullptr;
@@ -95,12 +97,17 @@ private:
 	GUILabel * LabelCam = nullptr;
 	GUIScreen * g_screen_params = nullptr;
 	GUIScreen * g_screen_jeu = nullptr;
+
 	GUISlider * g_slider_cameraXRotateMouseRatio = nullptr;
 	GUISlider * g_slider_cameraYRotateMouseRatio = nullptr;
 	GUISlider * g_slider_cameraZoomWheelRatio = nullptr;
 	GUISlider * g_slider_cameraXYMotionMouseRatio = nullptr;
 	GUISlider * g_slider_cameraXZMotionMouseRatio = nullptr;
 	GUISlider * g_slider_cameraKeyboardMotionSpeed = nullptr;
+
+	GUISlider * g_slider_ambient;
+	GUISlider * g_slider_wave_amplitude;
+	GUISlider * g_slider_normalized_wavelength;
 	
 		// state vars
 	

@@ -4,6 +4,13 @@
 #include "Game.h"
 #include "cube.h"
 
+#define NB_FLOAT_VECTOR3 3
+#define NB_FLOAT_COLOR4 4
+#define NB_FLOAT_UV 2
+#define NB_FLOAT_ATTR1 1
+
+#define NB_VBO 3
+
 /**
   * On utilise des chunks pour que si on modifie juste un cube, on ait pas
   * besoin de recharger toute la carte dans le buffer, mais juste le chunk en question
@@ -15,21 +22,22 @@ class NYChunk
 		static const int CHUNK_SIZE = 16; ///< Taille d'un chunk en nombre de cubes (n*n*n)
 		NYCube _Cubes[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE]; ///< Cubes contenus dans le chunk
 
-		GLuint _BufWorld; ///< Identifiant du VBO pour le monde
+		GLuint _WorldBuffers[NB_VBO]; ///< Array d'identifiants des VBOs pour le monde
 		
-		static float _WorldVert[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 3 * 4 * 6]; ///< Buffer pour les sommets
-		static float _WorldCols[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 3 * 4 * 6]; ///< Buffer pour les couleurs
-		static float _WorldNorm[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 3 * 4 * 6]; ///< Buffer pour les normales
-		static float _WorldUV[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 2 * 4 * 6]; ///< Buffer pour les normales
-		static float _WorldAttr[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 1 * 4 * 6];
+		static float _WorldVert[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_VECTOR3 * 4 * 6]; ///< Buffer pour les sommets
+		static float _WorldCols[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_COLOR4 * 4 * 6]; ///< Buffer pour les couleurs
+		static float _WorldNorm[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_VECTOR3 * 4 * 6]; ///< Buffer pour les normales
+		static float _WorldUV[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_UV * 4 * 6]; ///< Buffer pour les UV
+		static float _WorldAttr[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_ATTR1 * 4 * 6]; /// Buffer pour les attributs de vertex
 
-		static const int SIZE_VERTICE = 3 * sizeof(float); ///< Taille en octets d'un vertex dans le VBO
-		static const int SIZE_COLOR = 3 * sizeof(float);  ///< Taille d'une couleur dans le VBO
-		static const int SIZE_NORMAL = 3 * sizeof(float);  ///< Taille d'une normale dans le VBO
-		static const int SIZE_UV = 2 * sizeof(float);  ///< Taille d'une coord UV dans le VBO
-		static const int SIZE_ATTR = 1 * sizeof(float);  /// size of a float attribute
+		static const int SIZE_VERTEX = NB_FLOAT_VECTOR3 * sizeof(float); ///< Taille en octets d'un vertex dans le VBO
+		static const int SIZE_COLOR = NB_FLOAT_COLOR4 * sizeof(float);  ///< Taille d'une couleur dans le VBO
+		static const int SIZE_NORMAL = NB_FLOAT_VECTOR3 * sizeof(float);  ///< Taille d'une normale dans le VBO
+		static const int SIZE_UV = NB_FLOAT_UV * sizeof(float);  ///< Taille d'une coord UV dans le VBO
+		static const int SIZE_ATTR = NB_FLOAT_ATTR1 * sizeof(float);  /// size of a float attribute
 
-		int _NbVertices; ///< Nombre de vertices dans le VBO (on ne met que les faces visibles)
+		int _TotalNbVertices; ///< Nombre de vertices dans l'ensemble des VBO
+		int _NbVertices; ///< Nombre de vertices dans le VBO courant (on ne met que les faces visibles)
 
 		NYChunk * Voisins[6];
 		
@@ -39,7 +47,6 @@ class NYChunk
 		NYChunk()
 		{
 			_NbVertices = 0;
-			_BufWorld = 0;
 			memset(Voisins,0x00,sizeof(void*) * 6);
 		}
 
@@ -67,17 +74,27 @@ class NYChunk
 					}
 		}
 
-		//On met le chunk ddans son VBO
-		void toVbo(void);
+		// Genere tous les VBOs
+		void toVbos();
 
-		void render(void)
+		//On met le chunk ddans son VBO
+		void toVbo(NYCubeType cubeType);
+
+		void render()
+		{
+			for (NYCubeType cubeType : {CUBE_EARTH, CUBE_GRASS, CUBE_WATER})
+				// setup uniform shader params for this type
+				renderVbo(cubeType);
+		}
+
+		void renderVbo(NYCubeType cubeType)
 		{
 			// for debug, remove when using textures
 //			glEnable(GL_COLOR_MATERIAL);
 			glEnable(GL_LIGHTING);
 
 			//On bind le buffer
-			glBindBuffer(GL_ARRAY_BUFFER, _BufWorld);
+			glBindBuffer(GL_ARRAY_BUFFER, _WorldBuffers[cubeType]);
 			NYRenderer::checkGlError("glBindBuffer");
 
 			//On active les datas que contiennent le VBO
@@ -89,12 +106,12 @@ class NYChunk
 			glEnableVertexAttribArray(wave_factor_loc);
 
 			//On place les pointeurs sur les datas, aux bons offsets
-			glVertexPointer(3, GL_FLOAT, 0, (void*)(0));  // c'est bien une adresse relative
-			glColorPointer(3, GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTICE));
-			glNormalPointer(GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTICE + _NbVertices*SIZE_COLOR));
-			glTexCoordPointer(2, GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTICE + _NbVertices*SIZE_COLOR + _NbVertices*SIZE_NORMAL));
+			glVertexPointer(NB_FLOAT_VECTOR3, GL_FLOAT, 0, (void*)(0));  // c'est bien une adresse relative
+			glColorPointer(NB_FLOAT_COLOR4, GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTEX));
+			glNormalPointer(GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTEX + _NbVertices*SIZE_COLOR));
+			glTexCoordPointer(NB_FLOAT_UV, GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTEX + _NbVertices*SIZE_COLOR + _NbVertices*SIZE_NORMAL));
 			// pointer on wave amplitude attribute data, so that earth and water blocks are drawn with the correct wave effect
-			glVertexAttribPointer(wave_factor_loc, 1, GL_FLOAT, GL_FALSE, 0, (void*)(_NbVertices*SIZE_VERTICE + _NbVertices*SIZE_COLOR + _NbVertices*SIZE_NORMAL + _NbVertices*SIZE_UV));
+			glVertexAttribPointer(wave_factor_loc, NB_FLOAT_ATTR1, GL_FLOAT, GL_FALSE, 0, (void*)(_NbVertices*SIZE_VERTEX + _NbVertices*SIZE_COLOR + _NbVertices*SIZE_NORMAL + _NbVertices*SIZE_UV));
 
 			//On demande le dessin
 			glDrawArrays(GL_QUADS, 0, _NbVertices);
@@ -108,6 +125,8 @@ class NYChunk
 
 //			glDisable(GL_LIGHTING);
 //			glDisable(GL_COLOR_MATERIAL);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 		
 		void get_surrounding_cubes(int x, int y, int z,
@@ -172,14 +191,14 @@ class NYChunk
 
 			// pour un cube d'eau, cacher si entoure d'eau ou de solide (pas de Beer-Lambert ici, une seule couche de semi-transparence)
 			// sinon, cacher si entoure de solide only
-			if (cube._Type == CUBE_EAU)
+			if (cube._Type == CUBE_WATER)
 			{
-				if ((cubeXPrev->isSolid() == true || cubeZNext->_Type == CUBE_EAU) && //droite
-					(cubeXNext->isSolid() == true || cubeXNext->_Type == CUBE_EAU) && //gauche
-					(cubeYPrev->isSolid() == true || cubeYPrev->_Type == CUBE_EAU) && //devant
-					(cubeYNext->isSolid() == true || cubeYNext->_Type == CUBE_EAU) && //derriere
-					(cubeZPrev->isSolid() == true || cubeZPrev->_Type == CUBE_EAU) && //dessous
-					(cubeZNext->isSolid() == true || cubeZNext->_Type == CUBE_EAU))
+				if ((cubeXPrev->isSolid() == true || cubeZNext->_Type == CUBE_WATER) && //droite
+					(cubeXNext->isSolid() == true || cubeXNext->_Type == CUBE_WATER) && //gauche
+					(cubeYPrev->isSolid() == true || cubeYPrev->_Type == CUBE_WATER) && //devant
+					(cubeYNext->isSolid() == true || cubeYNext->_Type == CUBE_WATER) && //derriere
+					(cubeZPrev->isSolid() == true || cubeZPrev->_Type == CUBE_WATER) && //dessous
+					(cubeZNext->isSolid() == true || cubeZNext->_Type == CUBE_WATER))
 					return true;
 			}
 

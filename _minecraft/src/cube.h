@@ -4,9 +4,9 @@
 
 enum NYCubeType
 {
-	CUBE_HERBE,
-	CUBE_EAU,
-	CUBE_TERRE, 
+	CUBE_EARTH = 0,
+	CUBE_GRASS = 1,
+	CUBE_WATER = 2,
 	CUBE_AIR
 };
 
@@ -25,7 +25,7 @@ class NYCube
 
 		bool isSolid(void)
 		{
-			return (_Type != CUBE_AIR && _Type != CUBE_EAU);
+			return (_Type != CUBE_AIR && _Type != CUBE_WATER);
 		}
 
 		void saveToFile(FILE * fs)

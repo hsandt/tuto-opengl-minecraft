@@ -2,13 +2,14 @@
 
 #include "world.h"
 
+// for each of the 3 main cube types
 // we need 6 faces, 4 vertices per face since quads, 3 coords per vertex, hence 3*4*6
 // 8 vertices are not enough, we need redundancy to 
-float NYChunk::_WorldVert[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE*3*4*6];
-float NYChunk:: _WorldCols[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE*3*4*6];
-float NYChunk::_WorldNorm[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE*3*4*6];
-float NYChunk::_WorldUV[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE*2*4*6];
-float NYChunk::_WorldAttr[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 1 * 4 * 6];
+float NYChunk::_WorldVert[3][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_VECTOR3 * 4 * 6];
+float NYChunk::_WorldCols[3][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_COLOR4 * 4 * 6];
+float NYChunk::_WorldNorm[3][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_VECTOR3 * 4 * 6];
+float NYChunk::_WorldUV[3][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_UV * 4 * 6];
+float NYChunk::_WorldAttr[3][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_ATTR1 * 4 * 6];
 
 namespace
 {
@@ -20,38 +21,59 @@ namespace
 		*ptVert = x * (float)NYCube::CUBE_SIZE;
 		*(ptVert + 1) = y * (float)NYCube::CUBE_SIZE;
 		*(ptVert + 2) = z * (float)NYCube::CUBE_SIZE;
-		ptVert += 3;
+		ptVert += NB_FLOAT_VECTOR3;
 
-		// currently we pass 3 values per color; if oyu want to unlock alpha channel, switch to 4 in buffer
+		// currently we pass 3 values per color; if you want to unlock alpha channel, switch to 4 in buffer
 		*ptCols = color.R + dist(random_engine);
 		*(ptCols + 1) = color.V + dist(random_engine);
 		*(ptCols + 2) = color.B + dist(random_engine);
-//		*(ptCols + 3) = color.A + dist(random_engine);
-		ptCols += 3;
+		*(ptCols + 3) = color.A + dist(random_engine);
+		ptCols += NB_FLOAT_COLOR4;
 
 		*ptNorm = normal.X;
 		*(ptNorm + 1) = normal.Y;
 		*(ptNorm + 2) = normal.Z;
-		ptNorm += 3;
+		ptNorm += NB_FLOAT_VECTOR3;
 
 		*ptUV = u;
 		*(ptUV + 1) = v;
-		ptUV += 2;
+		ptUV += NB_FLOAT_UV;
 
 		*ptAttr = attr;
-		ptAttr++;
+		ptAttr += NB_FLOAT_ATTR1;
 
 	}
 }
 
-void NYChunk::toVbo()
+void NYChunk::toVbos()
+{
+	// detruit le buffer s'il existe deja (verifie le premier no de buffer, qui devrait etre different de 0,
+	// et suppose que les autres aussi ont ete definis)
+	if (_WorldBuffers[0] != 0)
+		glDeleteBuffers(NB_VBO, _WorldBuffers);
+
+	// genere un ID
+	// an array of 1 elt is theoretically what we want, although a pointer to the var is technically the same
+	glGenBuffers(NB_VBO, _WorldBuffers);
+
+	_TotalNbVertices = 0;
+
+	for (NYCubeType cubeType : {CUBE_EARTH, CUBE_GRASS, CUBE_WATER})
+	{
+		toVbo(cubeType);
+		_TotalNbVertices += _NbVertices;
+	}
+}
+
+/// Store VBO for all cubes of given type in this chunk
+void NYChunk::toVbo(NYCubeType cubeType)
 {
 	//On utilise les buffers temporaires pour préparer nos datas
-	float * ptVert = _WorldVert;
-	float * ptCols = _WorldCols;
-	float * ptNorm = _WorldNorm;
-	float * ptUV = _WorldUV;
-	float * ptAttr = _WorldAttr;
+	float * ptVert = _WorldVert[cubeType];
+	float * ptCols = _WorldCols[cubeType];
+	float * ptNorm = _WorldNorm[cubeType];
+	float * ptUV = _WorldUV[cubeType];
+	float * ptAttr = _WorldAttr[cubeType];
 	_NbVertices = 0;
 
 	for (int x = 0; x < CHUNK_SIZE; x++)
@@ -60,7 +82,8 @@ void NYChunk::toVbo()
 			{
 				NYCube cube = _Cubes[x][y][z];
 
-				if (cube._Draw && cube._Type != NYCubeType::CUBE_AIR)
+				// only register cubes of the passed type (earth, grass, water)
+				if (cube._Draw && cube._Type == cubeType)
 				{
 					// Position du cube (coin bas gauche face avant)
 					float xPos = x * (float)NYCube::CUBE_SIZE;
@@ -82,7 +105,7 @@ void NYChunk::toVbo()
 					float wave_factor = 0.f;
 
 					// only apply wave effect for water surface, and on concerned vertices
-					if (cube._Type == CUBE_EAU && (cubeZNext == nullptr || cubeZNext->_Type == CUBE_AIR))
+					if (cube._Type == CUBE_WATER && (cubeZNext == nullptr || cubeZNext->_Type == CUBE_AIR))
 					{
 						// parametered by slider, but since chunks are created at init, the slider alone does not work without reset/update chunk
 						wave_factor = 1.f;
@@ -91,7 +114,7 @@ void NYChunk::toVbo()
 					// ne dessiner une face que si un cube transparent ou semi-transparent est devant
 
 					// Premier QUAD (Z-)
-					if (cubeZPrev == nullptr || !cubeZPrev->isSolid())
+					if (cubeZPrev == nullptr || cubeZPrev->_Type == CUBE_AIR)
 					{
 						NYVert3Df normal = NYVert3Df(0, 0, -1);
 						SetVertColNorm(ptVert, ptCols, ptNorm, ptUV, ptAttr, x, y, z, color, dist, normal, 0, 0, 0);
@@ -104,9 +127,9 @@ void NYChunk::toVbo()
 					}
 
 					//Second QUAD (X+)
-					// because of water wave, do not hide side quads for water
+					// because of water wave, do not hide side quads for water, except if neighbor is also water
 					// we assume lower water cubes are already hidden
-					if (cube._Type == CUBE_EAU || cubeXNext == nullptr || !cubeXNext->isSolid())
+					if (cubeXNext == nullptr || cubeXNext->_Type == CUBE_AIR || (wave_factor == 1.f && cubeXNext->_Type != CUBE_WATER))
 					{
 						NYVert3Df normal = NYVert3Df(1, 0, 0);
 						SetVertColNorm(ptVert, ptCols, ptNorm, ptUV, ptAttr, x + 1, y, z, color, dist, normal, 0, 0, 0);
@@ -117,7 +140,7 @@ void NYChunk::toVbo()
 					}
 
 					//Troisieme QUAD (X-)
-					if (cube._Type == CUBE_EAU || cubeXPrev == nullptr || !cubeXPrev->isSolid())
+					if (cubeXPrev == nullptr || cubeXPrev->_Type == CUBE_AIR || (wave_factor == 1.f && cubeXPrev->_Type != CUBE_WATER))
 					{
 						NYVert3Df normal = NYVert3Df(-1, 0, 0);
 						SetVertColNorm(ptVert, ptCols, ptNorm, ptUV, ptAttr, x, y, z, color, dist, normal, 0, 0, 0);
@@ -128,7 +151,7 @@ void NYChunk::toVbo()
 					}
 
 					//Quatrieme QUAD (Y+)
-					if (cube._Type == CUBE_EAU || cubeYNext == nullptr || !cubeYNext->isSolid())
+					if (cubeYNext == nullptr || cubeYNext->_Type == CUBE_AIR || (wave_factor == 1.f && cubeYNext->_Type != CUBE_WATER))
 					{
 						NYVert3Df normal = NYVert3Df(0, 1, 0);
 						SetVertColNorm(ptVert, ptCols, ptNorm, ptUV, ptAttr, x, y + 1, z, color, dist, normal, 0, 0, 0);
@@ -139,7 +162,7 @@ void NYChunk::toVbo()
 					}
 
 					//Cinquieme QUAD (Y-)
-					if (cube._Type == CUBE_EAU || cubeYPrev == nullptr || !cubeYPrev->isSolid())
+					if (cubeYPrev == nullptr || cubeYPrev->_Type == CUBE_AIR || (wave_factor == 1.f && cubeYPrev->_Type != CUBE_WATER))
 					{
 						NYVert3Df normal = NYVert3Df(0, -1, 0);
 						SetVertColNorm(ptVert, ptCols, ptNorm, ptUV, ptAttr, x, y, z, color, dist, normal, 0, 0, 0);
@@ -149,7 +172,7 @@ void NYChunk::toVbo()
 						_NbVertices += 4;
 					}
 
-					if (cubeZNext == nullptr || !cubeZNext->isSolid())
+					if (cubeZNext == nullptr || cubeZNext->_Type == CUBE_AIR)
 					{
 						//Sixieme QUAD (Z+)
 						NYVert3Df normal = NYVert3Df(0, 0, 1);
@@ -163,21 +186,13 @@ void NYChunk::toVbo()
 				}
 			}
 
-	// detruit le buffer s'il existe deja
-	if (_BufWorld != 0)
-		glDeleteBuffers(1, &_BufWorld);
-
-	// genere un ID
-	// an array of 1 elt is theoretically what we want, although a pointer to the var is technically the same
-	glGenBuffers(1, &_BufWorld);
-
 	//On attache le VBO pour pouvoir le modifier
-	glBindBuffer(GL_ARRAY_BUFFER, _BufWorld);
+	glBindBuffer(GL_ARRAY_BUFFER, _WorldBuffers[cubeType]);
 
 	//On reserve la quantite totale de datas (creation de la zone memoire, mais sans passer les données)
 	//Les tailles g_size* sont en octets, à vous de les calculer
 	glBufferData(GL_ARRAY_BUFFER,
-		_NbVertices * SIZE_VERTICE +
+		_NbVertices * SIZE_VERTEX +
 		_NbVertices * SIZE_COLOR +
 		_NbVertices * SIZE_NORMAL +
 		_NbVertices * SIZE_UV +
@@ -191,43 +206,43 @@ void NYChunk::toVbo()
 	//On copie les vertices
 	glBufferSubData(GL_ARRAY_BUFFER,
 		0, //Offset 0, on part du debut                        
-		_NbVertices * SIZE_VERTICE, //Taille en octets des datas copiés
-		_WorldVert);  //Datas          
+		_NbVertices * SIZE_VERTEX, //Taille en octets des datas copiés
+		_WorldVert[cubeType]);  //Datas          
 
 						//Check error (la tester ensuite...)
 	error = glGetError();
 
 	//On copie les couleurs
 	glBufferSubData(GL_ARRAY_BUFFER,
-		_NbVertices * SIZE_VERTICE, //Offset : on se place après les vertices
+		_NbVertices * SIZE_VERTEX, //Offset : on se place après les vertices
 		_NbVertices * SIZE_COLOR, //On copie tout le buffer couleur : on donne donc sa taille
-		_WorldCols);  //Pt sur le buffer couleur       
+		_WorldCols[cubeType]);  //Pt sur le buffer couleur       
 
 	//Check error (la tester ensuite...)
 	error = glGetError();
 
 	//On copie les normales (a vous de déduire les params)
 	glBufferSubData(GL_ARRAY_BUFFER,
-		_NbVertices * SIZE_VERTICE + _NbVertices * SIZE_COLOR,
+		_NbVertices * SIZE_VERTEX + _NbVertices * SIZE_COLOR,
 		_NbVertices * SIZE_NORMAL,
-		_WorldNorm);
+		_WorldNorm[cubeType]);
 
 	//Check error (la tester ensuite...)
 	error = glGetError();
 
 	//On copie les normales (a vous de déduire les params)
 	glBufferSubData(GL_ARRAY_BUFFER,
-		_NbVertices * SIZE_VERTICE + _NbVertices * SIZE_COLOR + _NbVertices * SIZE_NORMAL,
+		_NbVertices * SIZE_VERTEX + _NbVertices * SIZE_COLOR + _NbVertices * SIZE_NORMAL,
 		_NbVertices * SIZE_UV,
-		_WorldUV);
+		_WorldUV[cubeType]);
 
 	error = glGetError();
 
 	//On copie les attributs de vertex
 	glBufferSubData(GL_ARRAY_BUFFER,
-		_NbVertices * SIZE_VERTICE + _NbVertices * SIZE_COLOR + _NbVertices * SIZE_NORMAL + _NbVertices * SIZE_UV,
+		_NbVertices * SIZE_VERTEX + _NbVertices * SIZE_COLOR + _NbVertices * SIZE_NORMAL + _NbVertices * SIZE_UV,
 		_NbVertices * SIZE_ATTR,
-		_WorldAttr);
+		_WorldAttr[cubeType]);
 
 	error = glGetError();
 

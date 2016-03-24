@@ -3,6 +3,8 @@ varying vec3 vertex_to_light_vector;
 varying vec4 color;
 
 uniform float ambientLevel;
+uniform float diffuseLevel;
+uniform float specularLevel;
 
 void main()
 {

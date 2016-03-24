@@ -38,10 +38,10 @@ public :
 
 	NYWorld()
 	{
-		cubeColors[NYCubeType::CUBE_HERBE] = NYColor(0.f / 255.f, 123.f / 255.f, 12.f / 255.f, 1.f);
-		cubeColors[NYCubeType::CUBE_EAU] = NYColor(20.f / 255.f, 70.f / 255.f, 180.f / 255.f, 1.f);  // if you make it transparent, adapt Cube::isSolid
-		cubeColors[NYCubeType::CUBE_TERRE] = NYColor(148.f / 255.f, 62.f / 255.f, 15.f / 255.f, 1.f);
-		cubeColors[NYCubeType::CUBE_AIR] = NYColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 0.0f);
+		cubeColors[CUBE_GRASS] = NYColor(0.f / 255.f, 123.f / 255.f, 12.f / 255.f, 1.f);
+		cubeColors[CUBE_WATER] = NYColor(20.f / 255.f, 70.f / 255.f, 180.f / 255.f, 0.5f);  // if you make it transparent, adapt Cube::isSolid
+		cubeColors[CUBE_EARTH] = NYColor(148.f / 255.f, 62.f / 255.f, 15.f / 255.f, 1.f);
+		cubeColors[CUBE_AIR] = NYColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 0.0f);
 
 		_FacteurGeneration = 1.0;
 
@@ -102,7 +102,8 @@ public :
 		if(x >= MAT_SIZE * NYChunk::CHUNK_SIZE)x = (MAT_SIZE * NYChunk::CHUNK_SIZE)-1;
 		if(y >= MAT_SIZE * NYChunk::CHUNK_SIZE)y = (MAT_SIZE * NYChunk::CHUNK_SIZE)-1;
 		if(z >= MAT_HEIGHT * NYChunk::CHUNK_SIZE)z = (MAT_HEIGHT * NYChunk::CHUNK_SIZE)-1;
-		_Chunks[x / NYChunk::CHUNK_SIZE][y / NYChunk::CHUNK_SIZE][z / NYChunk::CHUNK_SIZE]->toVbo();
+		// OPTIMIZE: if we knew what that cube *was*, we could just update the VBOs corresponding to the previous and new types of the cube
+		_Chunks[x / NYChunk::CHUNK_SIZE][y / NYChunk::CHUNK_SIZE][z / NYChunk::CHUNK_SIZE]->toVbos();
 	}
 
 	void deleteCube(int x, int y, int z)
@@ -131,11 +132,11 @@ public :
 			{
 				cube = getCube(x, y, z);
 				cube->_Draw = true;
-				cube->_Type = NYCubeType::CUBE_TERRE;
+				cube->_Type = NYCubeType::CUBE_EARTH;
 			}
 			cube = getCube(x, y, height - 1);  // for a height of 3, setup 3 cubes at z = 0, 1 and 2 (therefore a height if 0 is impossible as we need at least water)
 			cube->_Draw = true;
-			cube->_Type = NYCubeType::CUBE_HERBE;
+			cube->_Type = NYCubeType::CUBE_GRASS;
 		}
 	}
 
@@ -292,7 +293,7 @@ public :
 					for (int z = 0; z < _WaterLevel; z++)
 					{
 						getCube(x, y, z)->_Draw = true;
-						getCube(x, y, z)->_Type = CUBE_EAU;
+						getCube(x, y, z)->_Type = CUBE_WATER;
 					}
 				}
 			}
@@ -389,8 +390,8 @@ public :
 			for(int y=0;y<MAT_SIZE;y++)
 				for(int z=0;z<MAT_HEIGHT;z++)
 				{
-					_Chunks[x][y][z]->toVbo();
-					totalNbVertices += _Chunks[x][y][z]->_NbVertices;
+					_Chunks[x][y][z]->toVbos();
+					totalNbVertices += _Chunks[x][y][z]->_TotalNbVertices;
 				}
 
 		Log::log(Log::ENGINE_INFO,(toString(totalNbVertices) + " vertices in VBO").c_str());

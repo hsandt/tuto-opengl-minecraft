@@ -1,37 +1,33 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\..\_engine\src\engine\render\renderer.cpp">
       <Filter>engine\render</Filter>
     </ClCompile>
     <ClCompile Include="..\..\_engine\src\engine\log\log.cpp">
       <Filter>engine\log</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\chunk.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="..\..\_engine\src\engine\utils\ny_utils.cpp">
+      <Filter>engine\utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\main.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="..\..\_engine\src\engine\utils\quaternion.c">
+      <Filter>engine\utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\StdioLogSystem.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="..\..\_engine\src\engine\utils\types_3d.cpp">
+      <Filter>engine\utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Game.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="..\..\_engine\src\engine\render\graph\tex_manager.cpp">
+      <Filter>engine\render</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\_engine\src\RuntimeCompiler\BuildTool.cpp">
+    <ClCompile Include="..\src\chunk.cpp" />
+    <ClCompile Include="..\..\_engine\src\RuntimeCompiler\FileChangeNotifier.cpp">
       <Filter>RuntimeCompiler</Filter>
     </ClCompile>
     <ClCompile Include="..\..\_engine\src\RuntimeCompiler\Compiler_PlatformWindows.cpp">
       <Filter>RuntimeCompiler</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\_engine\src\RuntimeCompiler\FileChangeNotifier.cpp">
-      <Filter>RuntimeCompiler</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcher.cpp">
-      <Filter>RuntimeCompiler</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcherWin32.cpp">
+    <ClCompile Include="..\..\_engine\src\RuntimeCompiler\BuildTool.cpp">
       <Filter>RuntimeCompiler</Filter>
     </ClCompile>
     <ClCompile Include="..\..\_engine\src\RuntimeObjectSystem\ObjectInterfacePerModuleSource.cpp">
@@ -43,24 +39,20 @@
     <ClCompile Include="..\..\_engine\src\RuntimeObjectSystem\RuntimeObjectSystem_PlatformWindows.cpp">
       <Filter>RuntimeObjectSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\_engine\src\RuntimeObjectSystem\ObjectFactorySystem\ObjectFactorySystem.cpp">
-      <Filter>RuntimeObjectSystem</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\_engine\src\RuntimeObjectSystem\SimpleSerializer\SimpleSerializer.cpp">
       <Filter>RuntimeObjectSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\_engine\src\engine\render\graph\tex_manager.cpp">
-      <Filter>engine\render</Filter>
+    <ClCompile Include="..\..\_engine\src\RuntimeObjectSystem\ObjectFactorySystem\ObjectFactorySystem.cpp">
+      <Filter>RuntimeObjectSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\_engine\src\engine\utils\ny_utils.cpp">
-      <Filter>engine\utils</Filter>
+    <ClCompile Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcher.cpp">
+      <Filter>RuntimeCompiler</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\_engine\src\engine\utils\quaternion.c">
-      <Filter>engine\utils</Filter>
+    <ClCompile Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcherWin32.cpp">
+      <Filter>RuntimeCompiler</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\_engine\src\engine\utils\types_3d.cpp">
-      <Filter>engine\utils</Filter>
-    </ClCompile>
+    <ClCompile Include="..\src\Game.cpp" />
+    <ClCompile Include="..\src\StdioLogSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="engine">
@@ -72,20 +64,20 @@
     <Filter Include="engine\log">
       <UniqueIdentifier>{0a822301-530a-4ea3-9539-50b080a3d8da}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src">
-      <UniqueIdentifier>{10b4f25d-0c4f-4161-8a00-6d8770e43924}</UniqueIdentifier>
+    <Filter Include="engine\utils">
+      <UniqueIdentifier>{21d9c9a8-c7df-44d8-9b7c-19fbc8d21a7e}</UniqueIdentifier>
     </Filter>
     <Filter Include="RuntimeCompiler">
-      <UniqueIdentifier>{96651a57-e3af-47ed-98cc-8f4306f3b947}</UniqueIdentifier>
+      <UniqueIdentifier>{759fd09d-3ff7-4e03-9095-76afb1ba709d}</UniqueIdentifier>
     </Filter>
     <Filter Include="RuntimeObjectSystem">
-      <UniqueIdentifier>{55665dcd-efe2-4099-836e-8089fae4ca13}</UniqueIdentifier>
+      <UniqueIdentifier>{f96b1cef-a4a3-48a9-900c-8aec9e9332a7}</UniqueIdentifier>
     </Filter>
     <Filter Include="shaders">
-      <UniqueIdentifier>{048a36a1-81f5-4a81-84fb-e93cea7eb2a0}</UniqueIdentifier>
+      <UniqueIdentifier>{4af37f9e-1a04-4cfb-9f52-38e1f0795a5f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="engine\utils">
-      <UniqueIdentifier>{75d22dc0-a117-4bdf-a35a-6c925fc9da74}</UniqueIdentifier>
+    <Filter Include="textures">
+      <UniqueIdentifier>{5f36d273-0e8a-4241-a34c-ef710fe24fe1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -104,55 +96,46 @@
     <ClInclude Include="..\..\_engine\src\engine\render\camera.h">
       <Filter>engine\render</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\world.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\..\_engine\src\engine\utils\ny_utils.h">
+      <Filter>engine\utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\chunk.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\..\_engine\src\engine\utils\quaternion.h">
+      <Filter>engine\utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cube.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\..\_engine\src\engine\utils\types.h">
+      <Filter>engine\utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\StdioLogSystem.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\..\_engine\src\engine\utils\types_3d.h">
+      <Filter>engine\utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Game.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\..\_engine\src\engine\render\graph\tex_manager.h">
+      <Filter>engine\render</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\AUArray.h">
-      <Filter>RuntimeCompiler</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\BuildTool.h">
-      <Filter>RuntimeCompiler</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\CompileOptions.h">
-      <Filter>RuntimeCompiler</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\Compiler.h">
-      <Filter>RuntimeCompiler</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\FileChangeNotifier.h">
-      <Filter>RuntimeCompiler</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\FileSystemUtils.h">
+    <ClInclude Include="..\src\chunk.h" />
+    <ClInclude Include="..\src\cube.h" />
+    <ClInclude Include="..\src\world.h" />
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\IFileChangeNotifier.h">
       <Filter>RuntimeCompiler</Filter>
     </ClInclude>
     <ClInclude Include="..\..\_engine\src\RuntimeCompiler\ICompilerLogger.h">
       <Filter>RuntimeCompiler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\IFileChangeNotifier.h">
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\FileSystemUtils.h">
       <Filter>RuntimeCompiler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcher.h">
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\FileChangeNotifier.h">
       <Filter>RuntimeCompiler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcherImpl.h">
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\Compiler.h">
       <Filter>RuntimeCompiler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcherWin32.h">
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\CompileOptions.h">
       <Filter>RuntimeCompiler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcherWin32_AltImpl.h">
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\BuildTool.h">
+      <Filter>RuntimeCompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\AUArray.h">
       <Filter>RuntimeCompiler</Filter>
     </ClInclude>
     <ClInclude Include="..\..\_engine\src\RuntimeObjectSystem\IObject.h">
@@ -188,40 +171,47 @@
     <ClInclude Include="..\..\_engine\src\RuntimeObjectSystem\RuntimeSourceDependency.h">
       <Filter>RuntimeObjectSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\RuntimeObjectSystem\ObjectFactorySystem\ObjectFactorySystem.h">
-      <Filter>RuntimeObjectSystem</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\_engine\src\RuntimeObjectSystem\SimpleSerializer\SimpleSerializer.h">
       <Filter>RuntimeObjectSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\engine\render\graph\tex_manager.h">
-      <Filter>engine\render</Filter>
+    <ClInclude Include="..\..\_engine\src\RuntimeObjectSystem\ObjectFactorySystem\ObjectFactorySystem.h">
+      <Filter>RuntimeObjectSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\engine\utils\ny_utils.h">
-      <Filter>engine\utils</Filter>
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcher.h">
+      <Filter>RuntimeCompiler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\engine\utils\quaternion.h">
-      <Filter>engine\utils</Filter>
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcherImpl.h">
+      <Filter>RuntimeCompiler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\engine\utils\types.h">
-      <Filter>engine\utils</Filter>
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcherWin32.h">
+      <Filter>RuntimeCompiler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\engine\utils\types_3d.h">
-      <Filter>engine\utils</Filter>
+    <ClInclude Include="..\..\_engine\src\RuntimeCompiler\SimpleFileWatcher\FileWatcherWin32_AltImpl.h">
+      <Filter>RuntimeCompiler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\_engine\src\engine\render\text_engine.h">
-      <Filter>engine\render</Filter>
-    </ClInclude>
+    <ClInclude Include="..\src\Game.h" />
+    <ClInclude Include="..\src\StdioLogSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\run\shaders\psbase.glsl">
       <Filter>shaders</Filter>
     </None>
+    <None Include="..\run\shaders\pscube.glsl">
+      <Filter>shaders</Filter>
+    </None>
     <None Include="..\run\shaders\vsbase.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\run\shaders\vscube.glsl">
       <Filter>shaders</Filter>
     </None>
     <None Include="..\run\shaders\postprocess\pshader.glsl">
       <Filter>shaders</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\run\textures\grass.png">
+      <Filter>textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>

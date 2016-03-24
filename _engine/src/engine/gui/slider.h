@@ -52,6 +52,15 @@ class GUISlider : public GUIPanel
 			setValue(0.0);
 		}
 
+		static GUISlider* CreateGUISlider(double min, double max, double initialValue, bool visible = true)
+		{
+			GUISlider* slider = new GUISlider();
+			slider->setMaxMin(max, min);  // will be opposed
+			slider->setValue(initialValue); // init with param value to ensure sync
+			slider->Visible = visible;
+			return slider;
+		}
+
 		virtual void setPos(uint16 x, uint16 y) override
 		{
 			X = x;

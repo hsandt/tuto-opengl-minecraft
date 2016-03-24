@@ -39,7 +39,6 @@
     <ClInclude Include="..\..\_engine\src\engine\render\camera.h" />
     <ClInclude Include="..\..\_engine\src\engine\render\graph\tex_manager.h" />
     <ClInclude Include="..\..\_engine\src\engine\render\renderer.h" />
-    <ClInclude Include="..\..\_engine\src\engine\render\text_engine.h" />
     <ClInclude Include="..\..\_engine\src\engine\utils\ny_utils.h" />
     <ClInclude Include="..\..\_engine\src\engine\utils\quaternion.h" />
     <ClInclude Include="..\..\_engine\src\engine\utils\types.h" />
@@ -78,7 +77,12 @@
   <ItemGroup>
     <None Include="..\run\shaders\postprocess\pshader.glsl" />
     <None Include="..\run\shaders\psbase.glsl" />
+    <None Include="..\run\shaders\pscube.glsl" />
     <None Include="..\run\shaders\vsbase.glsl" />
+    <None Include="..\run\shaders\vscube.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\run\textures\grass.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8531C627-6452-48A0-B4A8-40CCCC6376E1}</ProjectGuid>

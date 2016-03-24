@@ -22,6 +22,14 @@ class GUIScreen
 			_Active = true;
 		}
 
+		~GUIScreen()
+		{
+			for (GUIPanel* panel : Elements)
+			{
+				delete panel;
+			}
+		}
+
 		void activate(bool active)
 		{
 			_Active = active;
@@ -30,7 +38,7 @@ class GUIScreen
 		void addElement(GUIPanel * element) { Elements.push_back(element);}
 
 		// added util to quickly add label + param (inline fine since a mere shortcut)
-		void addLabeledElement(uint16 x, uint16 &y, std::string text, GUIPanel * panel)
+		void addLabeledElement(uint16 x, uint16 &y, std::string text, GUIPanel * panel, int bottomMargin = 10)
 		{
 			GUILabel * label = new GUILabel();
 			label->X = x;
@@ -42,6 +50,9 @@ class GUIScreen
 
 			panel->setPos(x, y);
 			addElement(panel);
+
+			y += panel->Height + 1;
+			y += bottomMargin;  // bonus margin to make things readable
 		}
 
 		//retourne TRUE si concerne par le click

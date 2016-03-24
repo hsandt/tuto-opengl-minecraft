@@ -17,16 +17,18 @@ class NYChunk
 
 		GLuint _BufWorld; ///< Identifiant du VBO pour le monde
 		
-		static float _WorldVert[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE*3*4*6]; ///< Buffer pour les sommets
-		static float _WorldCols[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE*3*4*6]; ///< Buffer pour les couleurs
-		static float _WorldNorm[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE*3*4*6]; ///< Buffer pour les normales
-		static float _WorldUV[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE*3*4*6]; ///< Buffer pour les normales
+		static float _WorldVert[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 3 * 4 * 6]; ///< Buffer pour les sommets
+		static float _WorldCols[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 3 * 4 * 6]; ///< Buffer pour les couleurs
+		static float _WorldNorm[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 3 * 4 * 6]; ///< Buffer pour les normales
+		static float _WorldUV[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 2 * 4 * 6]; ///< Buffer pour les normales
+		static float _WorldAttr[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE * 1 * 4 * 6];
 
 		static const int SIZE_VERTICE = 3 * sizeof(float); ///< Taille en octets d'un vertex dans le VBO
 		static const int SIZE_COLOR = 3 * sizeof(float);  ///< Taille d'une couleur dans le VBO
 		static const int SIZE_NORMAL = 3 * sizeof(float);  ///< Taille d'une normale dans le VBO
 		static const int SIZE_UV = 2 * sizeof(float);  ///< Taille d'une coord UV dans le VBO
-		
+		static const int SIZE_ATTR = 1 * sizeof(float);  /// size of a float attribute
+
 		int _NbVertices; ///< Nombre de vertices dans le VBO (on ne met que les faces visibles)
 
 		NYChunk * Voisins[6];
@@ -70,6 +72,7 @@ class NYChunk
 
 		void render(void)
 		{
+			// for debug, remove when using textures
 //			glEnable(GL_COLOR_MATERIAL);
 			glEnable(GL_LIGHTING);
 
@@ -82,12 +85,16 @@ class NYChunk
 			glEnableClientState(GL_COLOR_ARRAY);
 			glEnableClientState(GL_NORMAL_ARRAY);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			GLuint wave_factor_loc = glGetAttribLocation(NYRenderer::getInstance()->_ProgramCube, "wave_factor");
+			glEnableVertexAttribArray(wave_factor_loc);
 
 			//On place les pointeurs sur les datas, aux bons offsets
 			glVertexPointer(3, GL_FLOAT, 0, (void*)(0));  // c'est bien une adresse relative
 			glColorPointer(3, GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTICE));
 			glNormalPointer(GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTICE + _NbVertices*SIZE_COLOR));
 			glTexCoordPointer(2, GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTICE + _NbVertices*SIZE_COLOR + _NbVertices*SIZE_NORMAL));
+			// pointer on wave amplitude attribute data, so that earth and water blocks are drawn with the correct wave effect
+			glVertexAttribPointer(wave_factor_loc, 1, GL_FLOAT, GL_FALSE, 0, (void*)(_NbVertices*SIZE_VERTICE + _NbVertices*SIZE_COLOR + _NbVertices*SIZE_NORMAL + _NbVertices*SIZE_UV));
 
 			//On demande le dessin
 			glDrawArrays(GL_QUADS, 0, _NbVertices);
@@ -97,6 +104,7 @@ class NYChunk
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_NORMAL_ARRAY);
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableVertexAttribArray(wave_factor_loc);
 
 //			glDisable(GL_LIGHTING);
 //			glDisable(GL_COLOR_MATERIAL);
@@ -151,22 +159,39 @@ class NYChunk
 			NYCube * cubeYPrev = NULL; 
 			NYCube * cubeYNext = NULL; 
 			NYCube * cubeZPrev = NULL; 
-			NYCube * cubeZNext = NULL; 
+			NYCube * cubeZNext = NULL;
+
+			NYCube cube = _Cubes[x][y][z];
 
 			get_surrounding_cubes(x, y, z, cubeXPrev, cubeXNext, cubeYPrev, cubeYNext, cubeZPrev, cubeZNext);
 
-			if( cubeXPrev == NULL || cubeXNext == NULL ||
+			if (cubeXPrev == NULL || cubeXNext == NULL ||
 				cubeYPrev == NULL || cubeYNext == NULL ||
-				cubeZPrev == NULL || cubeZNext == NULL )
+				cubeZPrev == NULL || cubeZNext == NULL)
 				return false;
 
-			if( cubeXPrev->isSolid() == true && //droite
-				cubeXNext->isSolid() == true && //gauche
-				cubeYPrev->isSolid() == true && //haut
-				cubeYNext->isSolid() == true && //bas
-				cubeZPrev->isSolid() == true && //devant
-				cubeZNext->isSolid() == true )  //derriere
-				return true;
+			// pour un cube d'eau, cacher si entoure d'eau ou de solide (pas de Beer-Lambert ici, une seule couche de semi-transparence)
+			// sinon, cacher si entoure de solide only
+			if (cube._Type == CUBE_EAU)
+			{
+				if ((cubeXPrev->isSolid() == true || cubeZNext->_Type == CUBE_EAU) && //droite
+					(cubeXNext->isSolid() == true || cubeXNext->_Type == CUBE_EAU) && //gauche
+					(cubeYPrev->isSolid() == true || cubeYPrev->_Type == CUBE_EAU) && //devant
+					(cubeYNext->isSolid() == true || cubeYNext->_Type == CUBE_EAU) && //derriere
+					(cubeZPrev->isSolid() == true || cubeZPrev->_Type == CUBE_EAU) && //dessous
+					(cubeZNext->isSolid() == true || cubeZNext->_Type == CUBE_EAU))
+					return true;
+			}
+
+			else
+				if (cubeXPrev->isSolid() == true && //droite
+					cubeXNext->isSolid() == true && //gauche
+					cubeYPrev->isSolid() == true && //devant
+					cubeYNext->isSolid() == true && //derriere
+					cubeZPrev->isSolid() == true && //dessous
+					cubeZNext->isSolid() == true)  //dessus
+					return true;
+
 			return false;
 		}
 

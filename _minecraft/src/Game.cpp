@@ -1,4 +1,4 @@
-#include "Game.h"
+ï»¿#include "Game.h"
 
 //Includes application
 #include <conio.h>
@@ -36,6 +36,15 @@
 
 // Game
 #include "world.h"
+
+Game::~Game()
+{
+	delete g_screen_jeu;
+	delete g_screen_params;
+	delete g_screen_manager;
+	delete g_world;
+	delete g_timer;
+}
 
 bool Game::Init(int argc, char* argv[])
 {
@@ -128,7 +137,7 @@ bool Game::Init(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	//Affichage des capacités du système
+	//Affichage des capacitÃ©s du systÃ¨me
 	Log::log(Log::ENGINE_INFO, ("OpenGL Version : " + std::string((char*)glGetString(GL_VERSION))).c_str());
 
 //	glutDisplayFunc([]() {game->update(); });
@@ -201,64 +210,40 @@ bool Game::Init(int argc, char* argv[])
 	x += 10;
 
 	// slider for camera X rotate
-	g_slider_cameraXRotateMouseRatio = new GUISlider();
-	g_slider_cameraXRotateMouseRatio->setMaxMin(1, 0);  // will be opposed
-	g_slider_cameraXRotateMouseRatio->setValue(-cameraXRotateMouseRatio); // init with param value to ensure sync
-	g_slider_cameraXRotateMouseRatio->Visible = true;
+	g_slider_cameraXRotateMouseRatio = GUISlider::CreateGUISlider(0, 1, -cameraXRotateMouseRatio);
 	g_screen_params->addLabeledElement(x, y, "Camera X rotate: ", g_slider_cameraXRotateMouseRatio);
-	// add vertical space to prepare position of next element
-	y += g_slider_cameraXRotateMouseRatio->Height + 1;
-	y += 10;
 
 	// slider for camera Y rotate
-	g_slider_cameraYRotateMouseRatio = new GUISlider();
-	g_slider_cameraYRotateMouseRatio->setMaxMin(1, 0);  // will be opposed
-	g_slider_cameraYRotateMouseRatio->setValue(-cameraYRotateMouseRatio); // init with param value to ensure sync
-	g_slider_cameraYRotateMouseRatio->Visible = true;
+	g_slider_cameraYRotateMouseRatio = GUISlider::CreateGUISlider(0, 1, -cameraYRotateMouseRatio);
 	g_screen_params->addLabeledElement(x, y, "Camera Y rotate: ", g_slider_cameraYRotateMouseRatio);
-	// add vertical space to prepare position of next element
-	y += g_slider_cameraYRotateMouseRatio->Height + 1;
-	y += 10;
 
 	// slider for camera Z by wheel
-	g_slider_cameraZoomWheelRatio = new GUISlider();
-	g_slider_cameraZoomWheelRatio->setMaxMin(20, 0);
-	g_slider_cameraZoomWheelRatio->setValue(cameraZoomWheelRatio); // init with param value to ensure sync
-	g_slider_cameraZoomWheelRatio->Visible = true;
+	g_slider_cameraZoomWheelRatio = GUISlider::CreateGUISlider(0, 20, cameraZoomWheelRatio);
 	g_screen_params->addLabeledElement(x, y, "Camera zoom speed: ", g_slider_cameraZoomWheelRatio);
-	// add vertical space to prepare position of next element
-	y += g_slider_cameraZoomWheelRatio->Height + 1;
-	y += 10;
 
 	// slider for camera XY plane motion
-	g_slider_cameraXYMotionMouseRatio = new GUISlider();
-	g_slider_cameraXYMotionMouseRatio->setMaxMin(1, 0);
-	g_slider_cameraXYMotionMouseRatio->setValue(cameraXYMotionMouseRatio); // init with param value to ensure sync
-	g_slider_cameraXYMotionMouseRatio->Visible = true;
+	g_slider_cameraXYMotionMouseRatio = GUISlider::CreateGUISlider(0, 1, cameraXYMotionMouseRatio);
 	g_screen_params->addLabeledElement(x, y, "Camera XY motion: ", g_slider_cameraXYMotionMouseRatio);
-	// add vertical space to prepare position of next element
-	y += g_slider_cameraXYMotionMouseRatio->Height + 1;
-	y += 10;
 
 	// slider for camera XY plane motion
-	g_slider_cameraXZMotionMouseRatio = new GUISlider();
-	g_slider_cameraXZMotionMouseRatio->setMaxMin(1, 0);
-	g_slider_cameraXZMotionMouseRatio->setValue(cameraXZMotionMouseRatio); // init with param value to ensure sync
-	g_slider_cameraXZMotionMouseRatio->Visible = true;
+	g_slider_cameraXZMotionMouseRatio = GUISlider::CreateGUISlider(0, 1, cameraXZMotionMouseRatio);
 	g_screen_params->addLabeledElement(x, y, "Camera XZ motion: ", g_slider_cameraXZMotionMouseRatio);
-	// add vertical space to prepare position of next element
-	y += g_slider_cameraXZMotionMouseRatio->Height + 1;
-	y += 10;
 
 	// slider for camera WASD local
-	g_slider_cameraKeyboardMotionSpeed = new GUISlider();
-	g_slider_cameraKeyboardMotionSpeed->setMaxMin(200, 50);
-	g_slider_cameraKeyboardMotionSpeed->setValue(cameraKeyboardMotionSpeed); // init with param value to ensure sync
-	g_slider_cameraKeyboardMotionSpeed->Visible = true;
+	g_slider_cameraKeyboardMotionSpeed = GUISlider::CreateGUISlider(50, 200, cameraKeyboardMotionSpeed);
 	g_screen_params->addLabeledElement(x, y, "Camera WASD motion: ", g_slider_cameraKeyboardMotionSpeed);
-	// add vertical space to prepare position of next element
-	y += g_slider_cameraKeyboardMotionSpeed->Height + 1;
-	y += 10;
+	
+	// slider for ambient light intensity
+	g_slider_ambient = GUISlider::CreateGUISlider(0, 1, g_renderer->_Ambient);
+	g_screen_params->addLabeledElement(x, y, "Ambient: ", g_slider_ambient);
+	
+	// slider for water wave amplitude
+	g_slider_wave_amplitude = GUISlider::CreateGUISlider(0, 10, g_renderer->_WaveAmplitude);
+	g_screen_params->addLabeledElement(x, y, "Water wave amplitude: ", g_slider_wave_amplitude);
+	
+	// slider for Normalized water wave length:
+	g_slider_normalized_wavelength = GUISlider::CreateGUISlider(1, 20, g_renderer->_NormalizedWaveLength);
+	g_screen_params->addLabeledElement(x, y, "Normalized water wave length: ", g_slider_normalized_wavelength);
 	
 
 	//Ecran a rendre
@@ -275,7 +260,6 @@ bool Game::Init(int argc, char* argv[])
 	// generate world
 	g_world = new NYWorld();
 	g_world->init_world(600);
-	g_world->add_world_to_vbo();
 
 	//Init Timer
 	g_timer = new NYTimer();
@@ -458,130 +442,31 @@ void Game::renderObjects(void)
 	glEnd();
 	glDisable(GL_COLOR_MATERIAL);
 
+	// use loaded shader program
+	glUseProgram(g_renderer->_ProgramCube);
+
+	GLuint elap = glGetUniformLocation(g_renderer->_ProgramCube, "elapsed");
+	glUniform1f(elap, NYRenderer::_DeltaTimeCumul);
+
+	GLuint amb = glGetUniformLocation(g_renderer->_ProgramCube, "ambientLevel");
+	glUniform1f(amb, g_renderer->_Ambient);
+
+	GLuint invView = glGetUniformLocation(g_renderer->_ProgramCube, "invertView");
+	glUniformMatrix4fv(invView, 1, true, g_renderer->_Camera->_InvertViewMatrix.Mat.t);
+
+	GLuint wave_amplitude_loc = glGetUniformLocation(g_renderer->_ProgramCube, "wave_amplitude");
+	GLuint normalized_wavelength_loc = glGetUniformLocation(g_renderer->_ProgramCube, "normalized_wavelength");
+	GLuint wave_period_loc = glGetUniformLocation(g_renderer->_ProgramCube, "wave_period");
+	glUniform1f(wave_amplitude_loc, g_renderer->_WaveAmplitude);
+	glUniform1f(normalized_wavelength_loc, g_renderer->_NormalizedWaveLength);
+	glUniform1f(wave_period_loc, g_renderer->_WavePeriod);
+
 	glPushMatrix();
-//	g_world->render_world_old_school();
+	//ã€€g_world->render_world_old_school();
 	g_world->render_world_vbo();
 	glPopMatrix();
 
-	/*
-
-	// DEBUG: rotation dans le temps pour verifier que toutes les faces sont OK
-	// move GUI slider to change rotation speed
-	//glRotatef(NYRenderer::_DeltaTimeCumul * 100, g_slider -> Value * 10.0f, 1, cos(NYRenderer::_DeltaTimeCumul));
-	glRotatef(NYRenderer::_DeltaTimeCumul * 100, 0, 0, 1);
-
-	// activate to debug back face
-	//glDisable(GL_CULL_FACE);
-
-	// a
-	//glRotatef(45, 0, 0, 1);
-	//glTranslatef(1.f, 0.f, 0.5f);
-
-	// b
-	//glTranslatef(1.f, 1.f, 0.5f);
-	//glRotatef(45, 0, 0, 1);
-
-	glBegin(GL_QUADS);
-
-	// face 1
-
-	// define materials (reddish)
-	// ambient
-	GLfloat redMaterialAmbient[] = { 0.8, 0, 0, 1.0 };
-	GLfloat greenMaterialAmbient[] = { 0, 0.8, 0, 1.0 };
-	GLfloat blueMaterialAmbient[] = { 0, 0, 0.8, 1.0 };
-
-	// diffuse
-	GLfloat redMaterialDiffuse[] = { 0.7, 0, 0, 1.0 };
-	GLfloat greenMaterialDiffuse[] = { 0, 0.7, 0, 1.0 };
-	GLfloat blueMaterialDiffuse[] = {0, 0, 0.7, 1.0};
-
-	// specular
-	GLfloat whiteMaterialSpecular[] = { 0.3, 0.3, 0.3, 1.0 };
-	GLfloat materialShininess = 100;
-
-	// color (overriden by lighting)
-	//glColor3d(0.5f, 0, 0);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, redMaterialAmbient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, redMaterialDiffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteMaterialSpecular);
-	glMaterialf(GL_FRONT, GL_SHININESS, materialShininess);
-
-	// face and normal
-	glNormal3d(1, 0, 0);
-	glVertex3d(1, 1, 1);
-	glVertex3d(1, -1, 1);
-	glVertex3d(1, -1, -1);
-	glVertex3d(1, 1, -1);
-
-	// face 2
-	glMaterialfv(GL_FRONT, GL_AMBIENT, greenMaterialAmbient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, greenMaterialDiffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteMaterialSpecular);
-	glMaterialf(GL_FRONT, GL_SHININESS, materialShininess);
-
-	//glColor3d(0, 0.5f, 0);
-	glNormal3f(0, 1, 0);
-	glVertex3d(-1, 1, 1);
-	glVertex3d(1, 1, 1);
-	glVertex3d(1, 1, -1);
-	glVertex3d(-1, 1, -1);
-
-	// face 3
-	//glColor3d(0, 0, 0.5f);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, blueMaterialAmbient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, blueMaterialDiffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteMaterialSpecular);
-	glMaterialf(GL_FRONT, GL_SHININESS, materialShininess);
-
-	glNormal3f(0, 0, 1);
-	glVertex3d(-1, -1, 1);
-	glVertex3d(1, -1, 1);
-	glVertex3d(1, 1, 1);
-	glVertex3d(-1, 1, 1);
-
-	// face 4
-	//glColor3d(0.5f, 0, 0);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, redMaterialAmbient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, redMaterialDiffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteMaterialSpecular);
-	glMaterialf(GL_FRONT, GL_SHININESS, materialShininess);
-
-	glNormal3f(-1, 0, 0);
-	glVertex3d(-1, -1, -1);
-	glVertex3d(-1, -1, 1);
-	glVertex3d(-1, 1, 1);
-	glVertex3d(-1, 1, -1);
-
-	// face 5
-	//glColor3d(0, 0.5f, 0);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, greenMaterialAmbient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, greenMaterialDiffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteMaterialSpecular);
-	glMaterialf(GL_FRONT, GL_SHININESS, materialShininess);
-
-	glNormal3f(0, -1, 0);
-	glVertex3d(-1, -1, 1);
-	glVertex3d(-1, -1, -1);
-	glVertex3d(1, -1, -1);
-	glVertex3d(1, -1, 1);
-
-	// face 6
-	//glColor3d(0, 0, 0.5f);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, blueMaterialAmbient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, blueMaterialDiffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteMaterialSpecular);
-	glMaterialf(GL_FRONT, GL_SHININESS, materialShininess);
-
-	glNormal3f(0, 0, -1);
-	glVertex3d(-1, -1, -1);
-	glVertex3d(-1, 1, -1);
-	glVertex3d(1, 1, -1);
-	glVertex3d(1, -1, -1);
-
-	glEnd();
-
-	*/
+	glUseProgram(0);
 
 }
 
@@ -613,10 +498,10 @@ void Game::setLights(void)
 	//On active la light 0
 	glEnable(GL_LIGHT0);
 
-	//On définit une lumière directionelle (un soleil)
+	//On dÃ©finit une lumiÃ¨re directionelle (un soleil)
 	float direction[4] = { 0,0,1,0 }; ///w = 0 donc elle est a l'infini
 	glLightfv(GL_LIGHT0, GL_POSITION, direction);  // la direction est en fait l'oppose de ce qu'on a passe
-												   // La lumière dépend du daytime, similaire à skybox
+												   // La lumiÃ¨re dÃ©pend du daytime, similaire Ã  skybox
 	GLfloat whiteColor[4] = { 0.3f,0.3f,0.3f };
 	GLfloat sunColor[4] = { skyColor.R, skyColor.V, skyColor.B };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, whiteColor);
@@ -628,7 +513,7 @@ void Game::setLights(void)
 	//On active la light 1
 	glEnable(GL_LIGHT1);
 
-	//On définit une point light
+	//On dÃ©finit une point light
 	float position[4] = { 2,2,2,1 };
 	glLightfv(GL_LIGHT1, GL_POSITION, position);
 	float ambient[4] = { 0.3f,0.3f,0.3f };
@@ -835,12 +720,15 @@ void Game::mouseMoveFunction(int x, int y, bool pressed)
 	if (pressed && mouseTraite)
 	{
 		Log::log(Log::USER_INFO, ("slider value update to: " + toString(g_slider_cameraXRotateMouseRatio->Value) + ", " + toString(g_slider_cameraYRotateMouseRatio->Value) + ", Z: " + toString(g_slider_cameraZoomWheelRatio->Value)).c_str());
-		//Mise a jour des variables liées aux sliders
+		//Mise a jour des variables liÃ©es aux sliders
 		// oppose for negative values
 		cameraXRotateMouseRatio = -g_slider_cameraXRotateMouseRatio->Value;
 		cameraYRotateMouseRatio = -g_slider_cameraYRotateMouseRatio->Value;
 		cameraZoomWheelRatio = g_slider_cameraZoomWheelRatio->Value;
 		cameraXYMotionMouseRatio = g_slider_cameraXYMotionMouseRatio->Value;
+		g_renderer->_Ambient = g_slider_ambient->Value;
+		g_renderer->_WaveAmplitude = g_slider_wave_amplitude->Value;
+		g_renderer->_NormalizedWaveLength = g_slider_normalized_wavelength->Value;
 	}
 
 }

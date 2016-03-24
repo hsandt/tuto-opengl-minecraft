@@ -25,7 +25,7 @@ class NYCube
 
 		bool isSolid(void)
 		{
-			return (_Type != CUBE_AIR);
+			return (_Type != CUBE_AIR && _Type != CUBE_EAU);
 		}
 
 		void saveToFile(FILE * fs)

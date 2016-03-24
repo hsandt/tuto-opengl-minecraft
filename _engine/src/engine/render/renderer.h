@@ -36,7 +36,7 @@ class NYRenderer
 		GLuint _DepthTexPP; ///< Rendu du buffer de profondeur, pour post process
 		GLuint _FBO; ///< Front buffer Object : pour effectuer un render to texture
 		GLuint _ProgramPP; ///< Le programme de shader pour le post process
-		GLuint _ProgramCube;
+		GLuint _ProgramCube; ///< Le programme de shader pour le rendu d'un cube
 
 		NYColor _BackGroundColor; ///< Couleur de fond. La modifier avec setBackgroundColor()
 
@@ -46,6 +46,12 @@ class NYRenderer
 
 		static float _DeltaTime; ///< Temps écoulé depuis la dernière frame (passe a la fonction render)
 		static float _DeltaTimeCumul; ///< Temps écoulé depuis le lancement de l'appli
+
+		// Params
+		float _Ambient = 0.5f;
+		float _WaveAmplitude = 4.f;
+		float _NormalizedWaveLength = 10.f;
+		float _WavePeriod = 3.f;
 
 		//GESTION DES SHADERS
 
@@ -133,6 +139,9 @@ class NYRenderer
 		  */
 		void initialise(bool postProcess = false)
 		{
+			// initialize vertex/fragment shaders
+			initShadersCube();
+
 			_DoPostProcess = postProcess;
 
 			if(postProcess)
@@ -366,7 +375,8 @@ class NYRenderer
 				case GL_STACK_UNDERFLOW: Log::log(Log::ENGINE_ERROR,("Opengl error (GL_STACK_UNDERFLOW) for call " + toString(call)).c_str()); break;
 				case GL_OUT_OF_MEMORY: Log::log(Log::ENGINE_ERROR,("Opengl error (GL_OUT_OF_MEMORY) for call " + toString(call)).c_str()); break;
 				case GL_TABLE_TOO_LARGE: Log::log(Log::ENGINE_ERROR,("Opengl error (GL_TABLE_TOO_LARGE) for call " + toString(call)).c_str()); break;
-				default : Log::log(Log::ENGINE_ERROR,("Unknown Opengl error for call " + toString(call)).c_str()); break; 
+				case GL_INVALID_VALUE: Log::log(Log::ENGINE_ERROR, ("Opengl error (GL_INVALID_VALUE) for call " + toString(call)).c_str()); break;
+				default : Log::log(Log::ENGINE_ERROR,("Unknown Opengl error for call " + toString(call)).c_str()); break;
 				}
 			}
 		}
@@ -408,6 +418,11 @@ class NYRenderer
 		}
 
 	private:
+		
+		void initShadersCube()
+		{
+			_ProgramCube = createProgram("shaders/pscube.glsl", "shaders/vscube.glsl");
+		}
 
 		void initShadersPostProcess(void)
 		{

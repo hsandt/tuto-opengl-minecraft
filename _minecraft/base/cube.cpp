@@ -17,7 +17,7 @@ NYColor NYCube::cubeDiffuseColors[3] = {
 };
 
 NYColor NYCube::cubeSpecularColors[3] = {
-	NYColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f),
-	NYColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f),
+	NYColor(0.f / 255.f, 0.f / 255.f, 0.f / 255.f, 1.f),
+	NYColor(0.f / 255.f, 0.f / 255.f, 0.f / 255.f, 1.f),
 	NYColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f)
 };

@@ -24,7 +24,8 @@ void main()
 	// Calculating The Specular Term And Clamping It To [0;1]
 	vec3 halfwayVector = (normalized_vertex_to_light_vector + normalized_vertex_to_camera_vector) / 2;
 	halfwayVector = normalize(halfwayVector);
-	float SpecularTerm = pow(dot(normalized_normal, halfwayVector), shininess);
+	float specularAngle = max(dot(normalized_normal, halfwayVector), 0.0);  // only positive values
+	float SpecularTerm = pow(specularAngle, shininess);
 
 	// Calculating The Final Color
 	gl_FragColor.rgb = ambientColor.rgb * ambientLevel + diffuseColor * DiffuseTerm * diffuseLevel + specularColor * SpecularTerm * specularLevel;

@@ -520,7 +520,7 @@ void Game::setLights(void)
 	glEnable(GL_LIGHT0);
 
 	//On définit une lumière directionelle (un soleil)
-	float direction[4] = { 0,0,1,0 }; ///w = 0 donc elle est a l'infini
+	float direction[4] = { 1,1,1,0 }; ///w = 0 donc elle est a l'infini
 	glLightfv(GL_LIGHT0, GL_POSITION, direction);  // la direction est en fait l'oppose de ce qu'on a passe
 												   // La lumière dépend du daytime, similaire à skybox
 	GLfloat whiteColor[4] = { 0.3f,0.3f,0.3f };

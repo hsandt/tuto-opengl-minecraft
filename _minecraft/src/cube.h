@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <engine/utils/types_3d.h>
 
 enum NYCubeType
 {
@@ -12,10 +13,15 @@ enum NYCubeType
 
 class NYCube
 {
+
 	public :
 		bool _Draw;
 		NYCubeType _Type;
 		static const int CUBE_SIZE = 10;
+
+		static NYColor cubeAmbientColors[3];
+		static NYColor cubeDiffuseColors[3];
+		static NYColor cubeSpecularColors[3];
 
 		NYCube()
 		{

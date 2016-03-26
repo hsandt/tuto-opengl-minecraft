@@ -41,7 +41,7 @@ struct NYColor
 
 	public:
 		float R;
-		float V;
+		float G;
 		float B;
 		float A;
 
@@ -55,7 +55,7 @@ private:
 		NYColor (float r, float v, float b, float a)
 		{
 			R = r;
-			V = v;
+			G = v;
 			B = b;
 			A = a;
 		}
@@ -63,7 +63,7 @@ private:
 		NYColor ()
 		{
 			R = 0;
-			V = 0;
+			G = 0;
 			B = 0;
 			A = 1;
 		}
@@ -71,7 +71,7 @@ private:
 		NYColor & operator = (const NYColor & color)
 		{
 			R = color.R;
-			V = color.V;
+			G = color.G;
 			B = color.B;
 			A = color.A;
 			return *this;
@@ -82,7 +82,7 @@ private:
 			NYColor res;
 			res = *this;
 			res.R *= alpha;
-			res.V *= alpha;
+			res.G *= alpha;
 			res.B *= alpha;
 			res.A *= alpha;
 			return res;
@@ -93,7 +93,7 @@ private:
 			NYColor res;
 			res = *this;
 			res.R += color.R;
-			res.V += color.V;
+			res.G += color.G;
 			res.B += color.B;
 			res.A += color.A;
 			return res;
@@ -110,8 +110,8 @@ private:
 		void toHSV(float *h, float *s, float *v, float *a )
 		{
 			float fmin, fmax, fdelta;
-			fmin = min( R, min(V, B) );
-			fmax = max( R, max(V, B) );
+			fmin = min( R, min(G, B) );
+			fmax = max( R, max(G, B) );
 			*v = fmax;				// v
 			fdelta = fmax - fmin;
 			if( fmax != 0 )
@@ -125,11 +125,11 @@ private:
 			if(fdelta > 0)
 			{
 				if( R == fmax )
-					*h = ( V - B ) / fdelta;		// between yellow & magenta
-				else if( V == fmax )
+					*h = ( G - B ) / fdelta;		// between yellow & magenta
+				else if( G == fmax )
 					*h = 2 + ( B - R ) / fdelta;	// between cyan & yellow
 				else
-					*h = 4 + ( R - V ) / fdelta;	// between magenta & cyan
+					*h = 4 + ( R - G ) / fdelta;	// between magenta & cyan
 				*h *= 60;				// degrees
 				if( *h < 0 )
 					*h += 360;
@@ -149,7 +149,7 @@ private:
 			float f, p, q, t;
 			if( s == 0 ) {
 				// achromatic (grey)
-				R = V = B = v;
+				R = G = B = v;
 				return;
 			}
 			h /= 60;			// sector 0 to 5
@@ -161,32 +161,32 @@ private:
 			switch( i ) {
 				case 0:
 					R = v;
-					V = t;
+					G = t;
 					B = p;
 					break;
 				case 1:
 					R = q;
-					V = v;
+					G = v;
 					B = p;
 					break;
 				case 2:
 					R = p;
-					V = v;
+					G = v;
 					B = t;
 					break;
 				case 3:
 					R = p;
-					V = q;
+					G = q;
 					B = v;
 					break;
 				case 4:
 					R = t;
-					V = p;
+					G = p;
 					B = v;
 					break;
 				default:		// case 5:
 					R = v;
-					V = p;
+					G = p;
 					B = q;
 					break;
 			}
@@ -246,7 +246,7 @@ private:
 	        // normalized XYZ -> linear sRGB
 	
 	        R = (float)(X * (1219569.0/395920.0)     + Y * (-608687.0/395920.0)    + Z * (-107481.0/197960.0));
-	        V = (float)(X * (-80960619.0/87888100.0) + Y * (82435961.0/43944050.0) + Z * (3976797.0/87888100.0));
+	        G = (float)(X * (-80960619.0/87888100.0) + Y * (82435961.0/43944050.0) + Z * (3976797.0/87888100.0));
 	        B = (float)(X * (93813.0/1774030.0)      + Y * (-180961.0/887015.0)    + Z * (107481.0/93370.0));
 			A = al;
 		}
@@ -258,9 +258,9 @@ private:
 	        
 	        // linear sRGB -> normalized XYZ (X,Y,Z are all in 0...1)
 	        
-	        X = xyz_to_lab(R * (10135552.0/23359437.0) + V * (8788810.0/23359437.0) + B * (4435075.0/23359437.0));
-	        Y = xyz_to_lab(R * (871024.0/4096299.0)    + V * (8788810.0/12288897.0) + B * (887015.0/12288897.0));
-	        Z = xyz_to_lab(R * (158368.0/8920923.0)    + V * (8788810.0/80288307.0) + B * (70074185.0/80288307.0));
+	        X = xyz_to_lab(R * (10135552.0/23359437.0) + G * (8788810.0/23359437.0) + B * (4435075.0/23359437.0));
+	        Y = xyz_to_lab(R * (871024.0/4096299.0)    + G * (8788810.0/12288897.0) + B * (887015.0/12288897.0));
+	        Z = xyz_to_lab(R * (158368.0/8920923.0)    + G * (8788810.0/80288307.0) + B * (70074185.0/80288307.0));
 	
 	        // normalized XYZ -> Lab
 	

@@ -53,6 +53,7 @@
     </ClCompile>
     <ClCompile Include="..\src\Game.cpp" />
     <ClCompile Include="..\src\StdioLogSystem.cpp" />
+    <ClCompile Include="cube.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="engine">

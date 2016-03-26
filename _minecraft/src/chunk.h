@@ -25,19 +25,19 @@ class NYChunk
 		GLuint _WorldBuffers[NB_VBO]; ///< Array d'identifiants des VBOs pour le monde
 		
 		static float _WorldVert[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_VECTOR3 * 4 * 6]; ///< Buffer pour les sommets
-		static float _WorldCols[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_COLOR4 * 4 * 6]; ///< Buffer pour les couleurs
+//		static float _WorldCols[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_COLOR4 * 4 * 6]; ///< Buffer pour les couleurs
 		static float _WorldNorm[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_VECTOR3 * 4 * 6]; ///< Buffer pour les normales
 		static float _WorldUV[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_UV * 4 * 6]; ///< Buffer pour les UV
 		static float _WorldAttr[NB_VBO][CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * NB_FLOAT_ATTR1 * 4 * 6]; /// Buffer pour les attributs de vertex
 
 		static const int SIZE_VERTEX = NB_FLOAT_VECTOR3 * sizeof(float); ///< Taille en octets d'un vertex dans le VBO
-		static const int SIZE_COLOR = NB_FLOAT_COLOR4 * sizeof(float);  ///< Taille d'une couleur dans le VBO
+//		static const int SIZE_COLOR = NB_FLOAT_COLOR4 * sizeof(float);  ///< Taille d'une couleur dans le VBO
 		static const int SIZE_NORMAL = NB_FLOAT_VECTOR3 * sizeof(float);  ///< Taille d'une normale dans le VBO
 		static const int SIZE_UV = NB_FLOAT_UV * sizeof(float);  ///< Taille d'une coord UV dans le VBO
 		static const int SIZE_ATTR = NB_FLOAT_ATTR1 * sizeof(float);  /// size of a float attribute
 
 		int _TotalNbVertices; ///< Nombre de vertices dans l'ensemble des VBO
-		int _NbVertices; ///< Nombre de vertices dans le VBO courant (on ne met que les faces visibles)
+		int _NbVertices[NB_VBO]; ///< Nombre de vertices dans le VBO courant (on ne met que les faces visibles)
 
 		NYChunk * Voisins[6];
 		
@@ -46,7 +46,6 @@ class NYChunk
 
 		NYChunk()
 		{
-			_NbVertices = 0;
 			memset(Voisins,0x00,sizeof(void*) * 6);
 		}
 
@@ -80,11 +79,27 @@ class NYChunk
 		//On met le chunk ddans son VBO
 		void toVbo(NYCubeType cubeType);
 
-		void render()
+		// DEBUG! should render opaque layers from ALL VBOs first
+		void render(bool opaque)
 		{
-			for (NYCubeType cubeType : {CUBE_EARTH, CUBE_GRASS, CUBE_WATER})
+			// render opaque, then transparent layers
+			if (opaque)
+			{
+				for (NYCubeType cubeType : { CUBE_EARTH, CUBE_GRASS })
+					// setup uniform shader params for this type
+					renderVbo(cubeType);
+			}
+			else
+			{
+				// note: translucent rendering is complex because farther objects must be rendered first,
+				// so if there are several types of translucent cubes, need a lot of work
+				// even water cubes themselves should be drawn in this order, which we don't do, so depending on the camera angle
+				// alpha blending looks different
+				// The best is probably to work on Fragment shader directly to calculate correct alpha blendingrenderVbo(CUBE_WATER);
+			
 				// setup uniform shader params for this type
-				renderVbo(cubeType);
+				renderVbo(CUBE_WATER);
+			}
 		}
 
 		void renderVbo(NYCubeType cubeType)
@@ -93,40 +108,56 @@ class NYChunk
 //			glEnable(GL_COLOR_MATERIAL);
 			glEnable(GL_LIGHTING);
 
+			// parameters that are common to all cubes of this type (no need for buffer array)
+			NYColor ambientColor = NYCube::cubeAmbientColors[cubeType];
+			NYColor diffuseColor = NYCube::cubeDiffuseColors[cubeType];
+			NYColor specularColor = NYCube::cubeSpecularColors[cubeType];
+			
+			GLuint amb = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "ambientColor");
+			GLuint diff = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "diffuseColor");
+			GLuint spec = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "specularColor");
+			GLuint shininess = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "shininess");
+			glUniform4f(amb, ambientColor.R, ambientColor.G, ambientColor.B, ambientColor.A);
+			glUniform3f(diff, diffuseColor.R, diffuseColor.G, diffuseColor.B);
+			glUniform3f(spec, specularColor.R, specularColor.G, specularColor.B);
+			glUniform1f(shininess, 5);
+
+
 			//On bind le buffer
 			glBindBuffer(GL_ARRAY_BUFFER, _WorldBuffers[cubeType]);
 			NYRenderer::checkGlError("glBindBuffer");
 
 			//On active les datas que contiennent le VBO
 			glEnableClientState(GL_VERTEX_ARRAY);
-			glEnableClientState(GL_COLOR_ARRAY);
+//			glEnableClientState(GL_COLOR_ARRAY);
 			glEnableClientState(GL_NORMAL_ARRAY);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 			GLuint wave_factor_loc = glGetAttribLocation(NYRenderer::getInstance()->_ProgramCube, "wave_factor");
 			glEnableVertexAttribArray(wave_factor_loc);
 
 			//On place les pointeurs sur les datas, aux bons offsets
+			int nbVertices = _NbVertices[cubeType];
 			glVertexPointer(NB_FLOAT_VECTOR3, GL_FLOAT, 0, (void*)(0));  // c'est bien une adresse relative
-			glColorPointer(NB_FLOAT_COLOR4, GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTEX));
-			glNormalPointer(GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTEX + _NbVertices*SIZE_COLOR));
-			glTexCoordPointer(NB_FLOAT_UV, GL_FLOAT, 0, (void*)(_NbVertices*SIZE_VERTEX + _NbVertices*SIZE_COLOR + _NbVertices*SIZE_NORMAL));
+//			glColorPointer(NB_FLOAT_COLOR4, GL_FLOAT, 0, (void*)(nbVertices*SIZE_VERTEX));
+			glNormalPointer(GL_FLOAT, 0, (void*)(nbVertices*SIZE_VERTEX));
+			glTexCoordPointer(NB_FLOAT_UV, GL_FLOAT, 0, (void*)(nbVertices*SIZE_VERTEX + nbVertices*SIZE_NORMAL));
 			// pointer on wave amplitude attribute data, so that earth and water blocks are drawn with the correct wave effect
-			glVertexAttribPointer(wave_factor_loc, NB_FLOAT_ATTR1, GL_FLOAT, GL_FALSE, 0, (void*)(_NbVertices*SIZE_VERTEX + _NbVertices*SIZE_COLOR + _NbVertices*SIZE_NORMAL + _NbVertices*SIZE_UV));
+			glVertexAttribPointer(wave_factor_loc, NB_FLOAT_ATTR1, GL_FLOAT, GL_FALSE, 0, (void*)(nbVertices*SIZE_VERTEX + nbVertices*SIZE_NORMAL + nbVertices*SIZE_UV));
 
 			//On demande le dessin
-			glDrawArrays(GL_QUADS, 0, _NbVertices);
+			glDrawArrays(GL_QUADS, 0, nbVertices);
 
 			//On cleane
-			glDisableClientState(GL_COLOR_ARRAY);
+//			glDisableClientState(GL_COLOR_ARRAY);
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_NORMAL_ARRAY);
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			glDisableVertexAttribArray(wave_factor_loc);
 
-//			glDisable(GL_LIGHTING);
+			glDisable(GL_LIGHTING);
 //			glDisable(GL_COLOR_MATERIAL);
 
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
+//			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 		
 		void get_surrounding_cubes(int x, int y, int z,

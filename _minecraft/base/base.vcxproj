@@ -31,6 +31,7 @@
     <ClCompile Include="..\src\Game.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\StdioLogSystem.cpp" />
+    <ClCompile Include="cube.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\_engine\src\engine\log\log.h" />

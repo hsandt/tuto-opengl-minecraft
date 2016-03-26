@@ -58,8 +58,8 @@ class GUISlope : public GUIPanel
 			ForceYMinMax = false;
 			
 			//les axes
-			addCourbe(NYColor(ColorBorder.R,ColorBorder.V,ColorBorder.B,1.0));
-			addCourbe(NYColor(ColorBorder.R,ColorBorder.V,ColorBorder.B,1.0));
+			addCourbe(NYColor(ColorBorder.R,ColorBorder.G,ColorBorder.B,1.0));
+			addCourbe(NYColor(ColorBorder.R,ColorBorder.G,ColorBorder.B,1.0));
 		}
 		
 		uint16 addCourbe(NYColor & color)
@@ -196,7 +196,7 @@ class GUISlope : public GUIPanel
 					//Si on rend les axes ou si le graphe affiche des courbes
 					if(i<=1 || Type == SLP_COURBE)
 					{
-						glColor3f(Courbes[i]->Color.R,Courbes[i]->Color.V,Courbes[i]->Color.B);
+						glColor3f(Courbes[i]->Color.R,Courbes[i]->Color.G,Courbes[i]->Color.B);
 						glBegin(GL_LINE_STRIP);
 						for(unsigned int j=0;j<Courbes[i]->PointsScaled.size();j++)
 						{				
@@ -211,7 +211,7 @@ class GUISlope : public GUIPanel
 						if(Courbes[1]->PointsScaled.size() != 0)
 						{
 							float yorig = Courbes[1]->PointsScaled[0].Y;
-							glColor3f(Courbes[i]->Color.R,Courbes[i]->Color.V,Courbes[i]->Color.B);
+							glColor3f(Courbes[i]->Color.R,Courbes[i]->Color.G,Courbes[i]->Color.B);
 							glBegin(GL_QUADS);
 							for(unsigned int j=0;j<Courbes[i]->PointsScaled.size();j++)
 							{				
@@ -231,7 +231,7 @@ class GUISlope : public GUIPanel
 				uint16 up,down;
 				_TextEngine->fontHeight(up,down);
 				uint16 lenAff = _Coords.length() * _TextEngine->fontWidth();
-				glColor3f(ColorBorder.R,ColorBorder.V,ColorBorder.B);
+				glColor3f(ColorBorder.R,ColorBorder.G,ColorBorder.B);
 				glRasterPos2i(X+(Width-lenAff)/2,(int) (Y + Height - (MargeY/2-up)/2));
 				_TextEngine->glPrint(_Coords.length(),_Coords.c_str());	
 				lenAff = Titre.length() * _TextEngine->fontWidth();

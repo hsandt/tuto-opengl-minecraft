@@ -35,16 +35,16 @@ class GUIPanel
 			Width = 100;
 			Height = 100;
 			ColorBorder.R = 1.0f;
-			ColorBorder.V = 1.0f;
+			ColorBorder.G = 1.0f;
 			ColorBorder.B = 1.0f;
 			ColorFond.R = 0.0f;
-			ColorFond.V = 0.0f;
+			ColorFond.G = 0.0f;
 			ColorFond.B = 0.0f;
 			FocusColor.R = 0.2f;
-			FocusColor.V = 0.2f;
+			FocusColor.G = 0.2f;
 			FocusColor.B = 0.2f;
 			ValidColor.R = 0.3f;
-			ValidColor.V = 0.3f;
+			ValidColor.G = 0.3f;
 			ValidColor.B = 0.3f;
 			Visible = true;
 			FondPlein = false;
@@ -125,7 +125,7 @@ class GUIPanel
 	protected:
 		void inline drawSquare(uint32 x,uint32 y,uint32 width,uint32 height,NYColor color)
 		{
-			glColor4f(color.R,color.V,color.B,color.A);
+			glColor4f(color.R,color.G,color.B,color.A);
 			glBegin(GL_LINE_LOOP);
 			glVertex3i(x,y,0);
 			glVertex3i(x,y+height,0);
@@ -137,7 +137,7 @@ class GUIPanel
 
 		void inline drawSquareFilled(uint32 x,uint32 y,uint32 width,uint32 height,NYColor color)
 		{
-			glColor4f(color.R,color.V,color.B,color.A);
+			glColor4f(color.R,color.G,color.B,color.A);
 			glBegin(GL_QUADS);
 			glVertex3i(x,y,0);
 			glVertex3i(x,y+height,0);

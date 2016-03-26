@@ -61,7 +61,7 @@ class GUIPBar : public GUIPanel
 			setValue(0.0);
 
 			_Ascenceur->ColorFond.R = 0.8f;
-			_Ascenceur->ColorFond.V = 0.8f;
+			_Ascenceur->ColorFond.G = 0.8f;
 			_Ascenceur->ColorFond.B = 0.8f;
 
 			

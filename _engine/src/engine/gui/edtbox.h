@@ -28,7 +28,7 @@ class GUIEdtBox : public GUIPanel
 			this->Width = 100;
 			this->Height = EDIT_BOX_HEIGHT_BASE;
 			ColorSel.R = 0.0;
-			ColorSel.V = 1.0;
+			ColorSel.G = 1.0;
 			ColorSel.B = 0.0;
 			_StartSelection = false;
 			_IdStartSelection = 0;
@@ -64,7 +64,7 @@ class GUIEdtBox : public GUIPanel
 				uint16 up,down;
 				_TextEngine->fontHeight(up,down);
 				sint16 lenAff = (Width-5) / _TextEngine->fontWidth();
-				glColor3f(ColorBorder.R,ColorBorder.V,ColorBorder.B);
+				glColor3f(ColorBorder.R,ColorBorder.G,ColorBorder.B);
 				glRasterPos2i(X+5,Y + (Height+up)/2);
 
 				if(_IdStartSelection < _OffsetAffichage)
@@ -83,7 +83,7 @@ class GUIEdtBox : public GUIPanel
 				//Draw sel string
 				if(_IdStartSelection != _IdEndSelection)
 				{
-					glColor3f(ColorSel.R,ColorSel.V,ColorSel.B);
+					glColor3f(ColorSel.R,ColorSel.G,ColorSel.B);
 					
 					if((sint16) _TextToDraw.length() > lenAff-1)
 					{

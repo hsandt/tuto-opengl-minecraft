@@ -48,7 +48,13 @@ class NYRenderer
 		static float _DeltaTimeCumul; ///< Temps écoulé depuis le lancement de l'appli
 
 		// Params
+
+		// sun light params
 		float _Ambient = 0.5f;
+		float _Diffuse = 0.5f;
+		float _Specular = 0.5f;
+
+		// wave params
 		float _WaveAmplitude = 4.f;
 		float _NormalizedWaveLength = 10.f;
 		float _WavePeriod = 3.f;
@@ -112,7 +118,7 @@ class NYRenderer
 			_TextEngine->buildFont(1,14);
 			_TextEngine->SelectFont(0);
 			_BackGroundColor.R = ROUGE_FOND;
-			_BackGroundColor.V = VERT_FOND;
+			_BackGroundColor.G = VERT_FOND;
 			_BackGroundColor.B = BLEU_FOND;
 			_DoPostProcess = false;
 		}
@@ -150,7 +156,7 @@ class NYRenderer
 				this->initShadersPostProcess();
 			}
 			
-			glClearColor(_BackGroundColor.R,_BackGroundColor.V,_BackGroundColor.B,_BackGroundColor.A);
+			glClearColor(_BackGroundColor.R,_BackGroundColor.G,_BackGroundColor.B,_BackGroundColor.A);
 
 			glDepthFunc(GL_LEQUAL);	
 			glEnable(GL_DEPTH_TEST);
@@ -210,7 +216,7 @@ class NYRenderer
 			_DeltaTimeCumul += elapsed;
 
 			//On efface les buffers
-			glClearColor(_BackGroundColor.R,_BackGroundColor.V,_BackGroundColor.B,_BackGroundColor.A);
+			glClearColor(_BackGroundColor.R,_BackGroundColor.G,_BackGroundColor.B,_BackGroundColor.A);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			//Si on a active le post process

@@ -1,6 +1,11 @@
 varying vec3 normal;
 varying vec3 vertex_to_light_vector;
-varying vec4 color;
+varying vec3 vertex_to_camera_vector;
+
+uniform vec4 ambientColor;  // use alpha
+uniform vec3 diffuseColor;
+uniform vec3 specularColor;
+uniform float shininess;
 
 uniform float ambientLevel;
 uniform float diffuseLevel;
@@ -11,11 +16,17 @@ void main()
 	// Scaling The Input Vector To Length 1
 	vec3 normalized_normal = normalize(normal);
 	vec3 normalized_vertex_to_light_vector = normalize(vertex_to_light_vector);
+	vec3 normalized_vertex_to_camera_vector = normalize(vertex_to_camera_vector);
 
 	// Calculating The Diffuse Term And Clamping It To [0;1]
-	float DiffuseTerm = clamp(dot(normal, vertex_to_light_vector), 0.0, 1.0);
+	float DiffuseTerm = clamp(dot(normalized_normal, normalized_vertex_to_light_vector), 0.0, 1.0);
+
+	// Calculating The Specular Term And Clamping It To [0;1]
+	vec3 halfwayVector = (normalized_vertex_to_light_vector + normalized_vertex_to_camera_vector) / 2;
+	halfwayVector = normalize(halfwayVector);
+	float SpecularTerm = pow(dot(normalized_normal, halfwayVector), shininess);
 
 	// Calculating The Final Color
-	gl_FragColor = color * (DiffuseTerm*(1-ambientLevel) + ambientLevel);
-	gl_FragColor.a = color.a;
+	gl_FragColor.rgb = ambientColor.rgb * ambientLevel + diffuseColor * DiffuseTerm * diffuseLevel + specularColor * SpecularTerm * specularLevel;
+	gl_FragColor.a = ambientColor.a;
 }

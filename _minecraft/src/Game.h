@@ -106,8 +106,12 @@ private:
 	GUISlider * g_slider_cameraKeyboardMotionSpeed = nullptr;
 
 	GUISlider * g_slider_ambient;
+	GUISlider * g_slider_diffuse;
+	GUISlider * g_slider_specular;
+
 	GUISlider * g_slider_wave_amplitude;
 	GUISlider * g_slider_normalized_wavelength;
+	GUISlider * g_slider_wave_period;
 	
 		// state vars
 	

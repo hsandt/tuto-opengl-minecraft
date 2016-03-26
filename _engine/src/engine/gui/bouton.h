@@ -56,7 +56,7 @@ class GUIBouton : public GUIPanel
 				uint16 up,down;
 				_TextEngine->fontHeight(up,down);
 				uint16 lenAff = Titre.length() * _TextEngine->fontWidth();
-				glColor3f(ColorBorder.R,ColorBorder.V,ColorBorder.B);
+				glColor3f(ColorBorder.R,ColorBorder.G,ColorBorder.B);
 				glRasterPos2i(X+(Width-lenAff)/2,Y + (Height+up)/2);
 				_TextEngine->glPrint(Titre.length(),Titre.c_str());				
 			}

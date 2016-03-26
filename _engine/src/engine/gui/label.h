@@ -37,7 +37,7 @@ class GUILabel : public GUIPanel
 				_TextEngine->SelectFont(FontNum);
 				_TextEngine->fontHeight(up,down);
 				uint16 lenAff = Text.length() * _TextEngine->fontWidth();
-				glColor3f(ColorBorder.R,ColorBorder.V,ColorBorder.B);
+				glColor3f(ColorBorder.R,ColorBorder.G,ColorBorder.B);
 
 				if(Centering)
 					glRasterPos2i(X+(Width-lenAff)/2,Y + (Height+up)/2);

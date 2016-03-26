@@ -1,6 +1,6 @@
 varying vec3 normal;
 varying vec3 vertex_to_light_vector;
-varying vec4 color;
+varying vec3 vertex_to_camera_vector;
 
 uniform float elapsed;
 uniform mat4 invertView;
@@ -23,11 +23,18 @@ void main()
 	gl_Position = viewProjectionMatrix * worldVertex;
 
 	// Transforming The Normal To ModelView-Space
+	// ?? model matrix with rotation only should be enough?? if using view coord for normal,
+	// light direction should also be or the dot product does not make sense!!
 	normal = gl_NormalMatrix * gl_Normal;
+	// normal = invertView * normal;  // and without translation... or dot product will be wrong
 
 	//Direction lumiere
+	// !! directional light only, subtract by vertex position for point light
 	vertex_to_light_vector = vec3(gl_LightSource[0].position);
 
+	// Direction camera (non normalisee): camera transformation matrix * origin = invertView * origin = invertView translation part
+	vertex_to_camera_vector = vec3(invertView * vec4(0, 0, 0, 1));
+
 	//Couleur
-	color = gl_Color;
+	// color = gl_Color;
 }

@@ -39,7 +39,7 @@ class GUILstBox : public GUIPanel
 			this->Y = 10;
 			this->Width = 100;
 			ColorSel.R = 0.0;
-			ColorSel.V = 1.0;
+			ColorSel.G = 1.0;
 			ColorSel.B = 0.0;
 			_IdSelection = -1;
 			_OffsetAffichage = 0;
@@ -142,7 +142,7 @@ class GUILstBox : public GUIPanel
 				_TextEngine->fontHeight(up,down);
 				uint16 lenAff = (Width-5) / _TextEngine->fontWidth();
 
-				glColor3f(ColorBorder.R,ColorBorder.V,ColorBorder.B);
+				glColor3f(ColorBorder.R,ColorBorder.G,ColorBorder.B);
 
 				//Draw Strings
 				for(unsigned int i=0; i < _NbMaxElements;i++)
@@ -153,9 +153,9 @@ class GUILstBox : public GUIPanel
 						alpha = 1.0f-(float)abs(i-_NbMaxElements/2.0f)/(( _NbMaxElements+1)/2.0f);
 
 					if (i+_OffsetAffichage == _IdSelection)
-						glColor4f(ColorSel.R,ColorSel.V,ColorSel.B,alpha);
+						glColor4f(ColorSel.R,ColorSel.G,ColorSel.B,alpha);
 					else
-						glColor4f(ColorBorder.R,ColorBorder.V,ColorBorder.B,alpha);
+						glColor4f(ColorBorder.R,ColorBorder.G,ColorBorder.B,alpha);
 
 					if(_OffsetAffichage + i >= 0 && _OffsetAffichage + i < Texts.size())
 					{
@@ -164,7 +164,7 @@ class GUILstBox : public GUIPanel
 					}
 
 					if (i+_OffsetAffichage == _IdSelection)
-						glColor3f(ColorBorder.R,ColorBorder.V,ColorBorder.B);
+						glColor3f(ColorBorder.R,ColorBorder.G,ColorBorder.B);
 				}		
 			}
 		}

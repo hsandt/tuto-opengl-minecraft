@@ -34,14 +34,8 @@ public :
 	float _HeightDiffFactor = 0.2f;  // the higher, the bigger ground height variations
 	int _WaterLevel = 10;
 
-	NYColor cubeColors[4];
-
 	NYWorld()
 	{
-		cubeColors[CUBE_GRASS] = NYColor(0.f / 255.f, 123.f / 255.f, 12.f / 255.f, 1.f);
-		cubeColors[CUBE_WATER] = NYColor(20.f / 255.f, 70.f / 255.f, 180.f / 255.f, 0.5f);  // if you make it transparent, adapt Cube::isSolid
-		cubeColors[CUBE_EARTH] = NYColor(148.f / 255.f, 62.f / 255.f, 15.f / 255.f, 1.f);
-		cubeColors[CUBE_AIR] = NYColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 0.0f);
 
 		_FacteurGeneration = 1.0;
 
@@ -368,16 +362,17 @@ public :
 //		glBindTexture(GL_TEXTURE_2D, _TexGrass->Texture);
 
 		// iterate on chunks NOT cubes
-		for(int x=0;x<MAT_SIZE;x++)
-			for(int y=0;y<MAT_SIZE;y++)
-				for(int z=0;z<MAT_HEIGHT;z++)
-				{
-					glPushMatrix();
-					// set whole chunk origin to bottom-left-close corner in the world
-					glTranslatef((float)(x*NYChunk::CHUNK_SIZE*NYCube::CUBE_SIZE),(float)(y*NYChunk::CHUNK_SIZE*NYCube::CUBE_SIZE),(float)(z*NYChunk::CHUNK_SIZE*NYCube::CUBE_SIZE));
-					_Chunks[x][y][z]->render();
-					glPopMatrix();
-				}
+		for (bool opaque : {true, false})
+			for(int x=0;x<MAT_SIZE;x++)
+				for(int y=0;y<MAT_SIZE;y++)
+					for(int z=0;z<MAT_HEIGHT;z++)
+					{
+						glPushMatrix();
+						// set whole chunk origin to bottom-left-close corner in the world
+						glTranslatef((float)(x*NYChunk::CHUNK_SIZE*NYCube::CUBE_SIZE),(float)(y*NYChunk::CHUNK_SIZE*NYCube::CUBE_SIZE),(float)(z*NYChunk::CHUNK_SIZE*NYCube::CUBE_SIZE));
+						_Chunks[x][y][z]->render(opaque);
+						glPopMatrix();
+					}
 
 //		glDisable(GL_TEXTURE_2D);
 	}
@@ -410,8 +405,8 @@ public :
 					{
 						glPushMatrix();
 						glTranslatef(NYCube::CUBE_SIZE * x, NYCube::CUBE_SIZE * y, NYCube::CUBE_SIZE * z);
-						NYColor color = cubeColors[cube->_Type];
-						glColor4f(color.R, color.V, color.B, color.A);
+						NYColor color = NYCube::cubeAmbientColors[cube->_Type];
+						glColor4f(color.R, color.G, color.B, color.A);
 						glutSolidCube(NYCube::CUBE_SIZE);
 						glPopMatrix();
 					}

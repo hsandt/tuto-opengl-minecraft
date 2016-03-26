@@ -236,7 +236,18 @@ bool Game::Init(int argc, char* argv[])
 	// slider for ambient light intensity
 	g_slider_ambient = GUISlider::CreateGUISlider(0, 1, g_renderer->_Ambient);
 	g_screen_params->addLabeledElement(x, y, "Ambient: ", g_slider_ambient);
+
+	// slider for diffuse light intensity
+	g_slider_diffuse = GUISlider::CreateGUISlider(0, 1, g_renderer->_Diffuse);
+	g_screen_params->addLabeledElement(x, y, "Diffuse: ", g_slider_diffuse);
+
+	// slider for specular light intensity
+	g_slider_specular = GUISlider::CreateGUISlider(0, 1, g_renderer->_Specular);
+	g_screen_params->addLabeledElement(x, y, "Specular: ", g_slider_specular);
 	
+	x += g_slider_specular->Width + 10;
+	y = 10;
+
 	// slider for water wave amplitude
 	g_slider_wave_amplitude = GUISlider::CreateGUISlider(0, 10, g_renderer->_WaveAmplitude);
 	g_screen_params->addLabeledElement(x, y, "Water wave amplitude: ", g_slider_wave_amplitude);
@@ -244,6 +255,10 @@ bool Game::Init(int argc, char* argv[])
 	// slider for Normalized water wave length:
 	g_slider_normalized_wavelength = GUISlider::CreateGUISlider(1, 20, g_renderer->_NormalizedWaveLength);
 	g_screen_params->addLabeledElement(x, y, "Normalized water wave length: ", g_slider_normalized_wavelength);
+	
+	// slider for Normalized water wave length:
+	g_slider_wave_period = GUISlider::CreateGUISlider(1, 10, g_renderer->_WavePeriod);
+	g_screen_params->addLabeledElement(x, y, "Wave period: ", g_slider_wave_period);
 	
 
 	//Ecran a rendre
@@ -451,6 +466,12 @@ void Game::renderObjects(void)
 	GLuint amb = glGetUniformLocation(g_renderer->_ProgramCube, "ambientLevel");
 	glUniform1f(amb, g_renderer->_Ambient);
 
+	GLuint diff = glGetUniformLocation(g_renderer->_ProgramCube, "diffuseLevel");
+	glUniform1f(diff, g_renderer->_Diffuse);
+
+	GLuint spec = glGetUniformLocation(g_renderer->_ProgramCube, "specularLevel");
+	glUniform1f(spec, g_renderer->_Specular);
+
 	GLuint invView = glGetUniformLocation(g_renderer->_ProgramCube, "invertView");
 	glUniformMatrix4fv(invView, 1, true, g_renderer->_Camera->_InvertViewMatrix.Mat.t);
 
@@ -503,7 +524,7 @@ void Game::setLights(void)
 	glLightfv(GL_LIGHT0, GL_POSITION, direction);  // la direction est en fait l'oppose de ce qu'on a passe
 												   // La lumière dépend du daytime, similaire à skybox
 	GLfloat whiteColor[4] = { 0.3f,0.3f,0.3f };
-	GLfloat sunColor[4] = { skyColor.R, skyColor.V, skyColor.B };
+	GLfloat sunColor[4] = { skyColor.R, skyColor.G, skyColor.B };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, whiteColor);
 	GLfloat color2[4] = { 0.3f,0.3f,0.3f };
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, sunColor);
@@ -727,8 +748,11 @@ void Game::mouseMoveFunction(int x, int y, bool pressed)
 		cameraZoomWheelRatio = g_slider_cameraZoomWheelRatio->Value;
 		cameraXYMotionMouseRatio = g_slider_cameraXYMotionMouseRatio->Value;
 		g_renderer->_Ambient = g_slider_ambient->Value;
+		g_renderer->_Diffuse = g_slider_diffuse->Value;
+		g_renderer->_Specular = g_slider_specular->Value;
 		g_renderer->_WaveAmplitude = g_slider_wave_amplitude->Value;
 		g_renderer->_NormalizedWaveLength = g_slider_normalized_wavelength->Value;
+		g_renderer->_WavePeriod = g_slider_wave_period->Value;
 	}
 
 }

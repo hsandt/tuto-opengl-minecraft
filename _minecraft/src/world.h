@@ -6,7 +6,6 @@
 #include "gl/glew.h"
 #include "gl/freeglut.h" 
 #include "engine/utils/types_3d.h"
-#include "engine/render/graph/tex_manager.h"
 #include "Game.h" // split in cpp and h to avoid this stuff
 #include "cube.h"
 #include "chunk.h"
@@ -36,7 +35,6 @@ public :
 
 	NYWorld()
 	{
-
 		_FacteurGeneration = 1.0;
 
 		//On crée les chunks
@@ -296,9 +294,6 @@ public :
 
 	void init_world(int profmax = -1)
 	{
-		// chargement texture
-		_TexGrass = NYTexManager::getInstance()->loadTexture(std::string("textures/grass.png"));
-
 		_cprintf("Creation du monde %f \n",_FacteurGeneration);
 
 		srand(6665);
@@ -355,11 +350,8 @@ public :
 
 	void render_world_vbo(void)
 	{
-		glDisable(GL_TEXTURE_2D);
+//		glDisable(GL_TEXTURE_2D);
 
-//		glEnable(GL_TEXTURE_2D);
-//		glActiveTexture(GL_TEXTURE0);
-//		glBindTexture(GL_TEXTURE_2D, _TexGrass->Texture);
 
 		// iterate on chunks NOT cubes
 		for (bool opaque : {true, false})
@@ -374,7 +366,6 @@ public :
 						glPopMatrix();
 					}
 
-//		glDisable(GL_TEXTURE_2D);
 	}
 
 	void add_world_to_vbo(void)
@@ -415,9 +406,6 @@ public :
 	}
 
 private:
-
-	// texture files
-	NYTexFile * _TexGrass;
 
 	// Compute average height between 2 XY coords, adding an offset and clamping
 	int computeAverageHeight(int x1, int y1, int x2, int y2, int offset)

@@ -108,6 +108,21 @@ class NYChunk
 //			glEnable(GL_COLOR_MATERIAL);
 			glEnable(GL_LIGHTING);
 
+			if (cubeType == CUBE_GRASS)
+			{
+				glUseProgram(NYRenderer::getInstance()->_ProgramCubeGrass);
+				glEnable(GL_TEXTURE_2D);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, NYRenderer::getInstance()->_TexGrass->Texture);
+
+				GLuint texLoc = glGetUniformLocation(NYRenderer::getInstance()->_ProgramCubeGrass, "Texture0");
+				glUniform1i(texLoc, 0);
+			}
+			else
+			{
+				glUseProgram(NYRenderer::getInstance()->_ProgramCube);
+			}
+
 			// parameters that are common to all cubes of this type (no need for buffer array)
 			NYColor ambientColor = NYCube::cubeAmbientColors[cubeType];
 			NYColor diffuseColor = NYCube::cubeDiffuseColors[cubeType];
@@ -158,6 +173,14 @@ class NYChunk
 //			glDisable(GL_COLOR_MATERIAL);
 
 //			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			if (cubeType == CUBE_GRASS)
+			{
+				glDisable(GL_TEXTURE_2D);
+			}
+
+			glUseProgram(0);
+
 		}
 		
 		void get_surrounding_cubes(int x, int y, int z,

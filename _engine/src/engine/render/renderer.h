@@ -7,6 +7,7 @@
 #include "engine/utils/types_3d.h"
 #include "engine/render/camera.h" 
 #include "engine/render/text_engine.h" 
+#include "engine/render/graph/tex_manager.h"
 #include "engine/log/log.h"
 
 //BACKGROUND COLOR FOND
@@ -29,6 +30,9 @@ class NYRenderer
 		void (*_Render2DFun)(void); ///< Rendu en 2d (en passe en mode camera ortho, etc...)
 		void (*_SetLights)(void); ///< Choisit la position des lumieres (besoin de le faire dans le bon referentiel, après matrice view défine)
 		
+		// Textures
+//		GLuint _GrassTexPP;  /// address of grass texture
+
 		//Post Process
 		bool _DoPostProcess;
 		GLuint _ColorTexPP; ///< Rendu ecran pour le post process
@@ -37,6 +41,7 @@ class NYRenderer
 		GLuint _FBO; ///< Front buffer Object : pour effectuer un render to texture
 		GLuint _ProgramPP; ///< Le programme de shader pour le post process
 		GLuint _ProgramCube; ///< Le programme de shader pour le rendu d'un cube
+		GLuint _ProgramCubeGrass; ///< Le programme de shader pour le rendu d'un cube d'herbe
 
 		NYColor _BackGroundColor; ///< Couleur de fond. La modifier avec setBackgroundColor()
 
@@ -58,6 +63,16 @@ class NYRenderer
 		float _WaveAmplitude = 4.f;
 		float _NormalizedWaveLength = 10.f;
 		float _WavePeriod = 3.f;
+
+		// outline params
+		float _OutlineThreshold = 40.f;
+
+		// param to reuse for debug
+		float _Temp = 50.f;
+
+		// Textures
+		// texture files
+		NYTexFile * _TexGrass;
 
 		//GESTION DES SHADERS
 
@@ -147,6 +162,11 @@ class NYRenderer
 		{
 			// initialize vertex/fragment shaders
 			initShadersCube();
+
+			// init cube textures
+			initTextures();
+
+
 
 			_DoPostProcess = postProcess;
 
@@ -323,6 +343,12 @@ class NYRenderer
 				var = glGetUniformLocation(_ProgramPP, "screen_height");
 				glUniform1f(var, (float)_ScreenHeight);
 
+				var = glGetUniformLocation(_ProgramPP, "outline_threshold");
+				glUniform1f(var, (float)_OutlineThreshold); 
+
+				var = glGetUniformLocation(_ProgramPP, "temp");
+				glUniform1f(var, (float)_Temp); 
+
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, _ColorTexPP);
 				glActiveTexture(GL_TEXTURE1);
@@ -333,12 +359,28 @@ class NYRenderer
 				//Restore
 				glActiveTexture(GL_TEXTURE0);
 
+				// Single view viewport
 				glBegin(GL_QUADS);
 				glTexCoord2f( 0, 1); glVertex3f( -1.0f,  1.0f, 0);
 				glTexCoord2f( 1, 1); glVertex3f(  1.0f,  1.0f, 0);
 				glTexCoord2f( 1, 0); glVertex3f(  1.0f, -1.0f, 0);
 				glTexCoord2f( 0, 0); glVertex3f( -1.0f, -1.0f, 0);
 				glEnd();
+
+				// Multiple views viewport (we cheat since there is still one rendering, just to get bee view or something)
+//				glBegin(GL_QUADS);
+//				glTexCoord2f(0, 1); glVertex3f(-1.0f, 1.0f, 0);
+//				glTexCoord2f(1, 1); glVertex3f(0.0f, 1.0f, 0);
+//				glTexCoord2f(1, 0); glVertex3f(0.0f, -1.0f, 0);
+//				glTexCoord2f(0, 0); glVertex3f(-1.0f, -1.0f, 0);
+//				glEnd();
+//
+//				glBegin(GL_QUADS);
+//				glTexCoord2f(0, 1); glVertex3f(0.0f, 1.0f, 0);
+//				glTexCoord2f(1, 1); glVertex3f(1.0f, 1.0f, 0);
+//				glTexCoord2f(1, 0); glVertex3f(1.0f, -1.0f, 0);
+//				glTexCoord2f(0, 0); glVertex3f(0.0f, -1.0f, 0);
+//				glEnd();
 
 				//Fin des shaders
 				glUseProgram(0);
@@ -424,10 +466,27 @@ class NYRenderer
 		}
 
 	private:
+
+		void initTextures ()
+		{
+			_TexGrass = NYTexManager::getInstance()->loadTexture(std::string("textures/grass.png"));
+
+			// not needed, Texture object instances already keep track of their buffer ID when generated
+//			//RGBA8 2D texture, 24 bit depth texture, 256x256
+//			glGenTextures(1, &_GrassTexPP);
+//			glBindTexture(GL_TEXTURE_2D, _GrassTexPP);
+////			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+////			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+////			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+////			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//			//NULL means reserve texture memory, but texels are undefined
+////			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _ScreenWidth, _ScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		}
 		
 		void initShadersCube()
 		{
 			_ProgramCube = createProgram("shaders/pscube.glsl", "shaders/vscube.glsl");
+			_ProgramCubeGrass = createProgram("shaders/psgrass.glsl", "shaders/vscube.glsl");
 		}
 
 		void initShadersPostProcess(void)

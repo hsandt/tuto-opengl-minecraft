@@ -260,6 +260,14 @@ bool Game::Init(int argc, char* argv[])
 	g_slider_wave_period = GUISlider::CreateGUISlider(1, 10, g_renderer->_WavePeriod);
 	g_screen_params->addLabeledElement(x, y, "Wave period: ", g_slider_wave_period);
 	
+	// slider for Outline threshold:
+	g_slider_outline_threshold = GUISlider::CreateGUISlider(0, 100, g_renderer->_OutlineThreshold);
+	g_screen_params->addLabeledElement(x, y, "Outline threshold: ", g_slider_outline_threshold);
+	
+	// slider for Temp value:
+	g_slider_temp = GUISlider::CreateGUISlider(0, 100, g_renderer->_Temp);
+	g_screen_params->addLabeledElement(x, y, "Temp: ", g_slider_temp);
+	
 
 	//Ecran a rendre
 	g_screen_manager->setActiveScreen(g_screen_jeu);
@@ -458,36 +466,45 @@ void Game::renderObjects(void)
 	glDisable(GL_COLOR_MATERIAL);
 
 	// use loaded shader program
-	glUseProgram(g_renderer->_ProgramCube);
+	// common uniform between the programs... best to use buffer to store them all, but here for 2 different programs
+	// ok to iterate manually
 
-	GLuint elap = glGetUniformLocation(g_renderer->_ProgramCube, "elapsed");
-	glUniform1f(elap, NYRenderer::_DeltaTimeCumul);
+	for (GLuint programID : {g_renderer->_ProgramCube, g_renderer->_ProgramCubeGrass})
+	{
+		glUseProgram(programID);
 
-	GLuint amb = glGetUniformLocation(g_renderer->_ProgramCube, "ambientLevel");
-	glUniform1f(amb, g_renderer->_Ambient);
+		GLuint elap = glGetUniformLocation(programID, "elapsed");
+		glUniform1f(elap, NYRenderer::_DeltaTimeCumul);
 
-	GLuint diff = glGetUniformLocation(g_renderer->_ProgramCube, "diffuseLevel");
-	glUniform1f(diff, g_renderer->_Diffuse);
+		GLuint amb = glGetUniformLocation(programID, "ambientLevel");
+		glUniform1f(amb, g_renderer->_Ambient);
 
-	GLuint spec = glGetUniformLocation(g_renderer->_ProgramCube, "specularLevel");
-	glUniform1f(spec, g_renderer->_Specular);
+		GLuint diff = glGetUniformLocation(programID, "diffuseLevel");
+		glUniform1f(diff, g_renderer->_Diffuse);
 
-	GLuint invView = glGetUniformLocation(g_renderer->_ProgramCube, "invertView");
-	glUniformMatrix4fv(invView, 1, true, g_renderer->_Camera->_InvertViewMatrix.Mat.t);
+		GLuint spec = glGetUniformLocation(programID, "specularLevel");
+		glUniform1f(spec, g_renderer->_Specular);
 
-	GLuint wave_amplitude_loc = glGetUniformLocation(g_renderer->_ProgramCube, "wave_amplitude");
-	GLuint normalized_wavelength_loc = glGetUniformLocation(g_renderer->_ProgramCube, "normalized_wavelength");
-	GLuint wave_period_loc = glGetUniformLocation(g_renderer->_ProgramCube, "wave_period");
-	glUniform1f(wave_amplitude_loc, g_renderer->_WaveAmplitude);
-	glUniform1f(normalized_wavelength_loc, g_renderer->_NormalizedWaveLength);
-	glUniform1f(wave_period_loc, g_renderer->_WavePeriod);
+		GLuint invView = glGetUniformLocation(programID, "invertView");
+		glUniformMatrix4fv(invView, 1, true, g_renderer->_Camera->_InvertViewMatrix.Mat.t);
+
+		GLuint wave_amplitude_loc = glGetUniformLocation(programID, "wave_amplitude");
+		GLuint normalized_wavelength_loc = glGetUniformLocation(programID, "normalized_wavelength");
+		GLuint wave_period_loc = glGetUniformLocation(programID, "wave_period");
+		glUniform1f(wave_amplitude_loc, g_renderer->_WaveAmplitude);
+		glUniform1f(normalized_wavelength_loc, g_renderer->_NormalizedWaveLength);
+		glUniform1f(wave_period_loc, g_renderer->_WavePeriod);
+
+		glUseProgram(0);
+	}
+
 
 	glPushMatrix();
 	//　g_world->render_world_old_school();
 	g_world->render_world_vbo();
 	glPopMatrix();
 
-	glUseProgram(0);
+//	glUseProgram(0);
 
 }
 
@@ -740,7 +757,6 @@ void Game::mouseMoveFunction(int x, int y, bool pressed)
 
 	if (pressed && mouseTraite)
 	{
-		Log::log(Log::USER_INFO, ("slider value update to: " + toString(g_slider_cameraXRotateMouseRatio->Value) + ", " + toString(g_slider_cameraYRotateMouseRatio->Value) + ", Z: " + toString(g_slider_cameraZoomWheelRatio->Value)).c_str());
 		//Mise a jour des variables liées aux sliders
 		// oppose for negative values
 		cameraXRotateMouseRatio = -g_slider_cameraXRotateMouseRatio->Value;
@@ -753,6 +769,9 @@ void Game::mouseMoveFunction(int x, int y, bool pressed)
 		g_renderer->_WaveAmplitude = g_slider_wave_amplitude->Value;
 		g_renderer->_NormalizedWaveLength = g_slider_normalized_wavelength->Value;
 		g_renderer->_WavePeriod = g_slider_wave_period->Value;
+		g_renderer->_OutlineThreshold = g_slider_outline_threshold->Value;
+		g_renderer->_Temp = g_slider_temp->Value;
+		Log::log(Log::USER_INFO, ("slider temp value update to: " + toString(g_renderer->_Temp)).c_str());
 	}
 
 }

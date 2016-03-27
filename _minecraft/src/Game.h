@@ -112,6 +112,8 @@ private:
 	GUISlider * g_slider_wave_amplitude;
 	GUISlider * g_slider_normalized_wavelength;
 	GUISlider * g_slider_wave_period;
+	GUISlider * g_slider_outline_threshold;
+	GUISlider * g_slider_temp;
 	
 		// state vars
 	

@@ -92,14 +92,16 @@ void main (void)
 	// DEBUG
 	// color = vec4(vec3(0, 0, 1) * depth * 15, 1);
 
-	if (depth * 15 > 1.0)
+	// blur far pixels but not skybox (very far) pixels to avoid bleaching effect on object edges
+	if (depth * 15 > 1 * temp && depth * 15 < 15)
 	{
 		// apply blur (BLUR_SIZExBLUR_SIZE-square mean)
 		// the farther, the blurrier
+		int blurRadius = (int) ((depth * 15 - 1) * 3.5 + 1);
+		// int blurRadius = 5;
+		color = Blur(color, screenPixelCoords, blurRadius);
 		// DEBUG
 		// color = vec4(1,1,1,1);
-		int blurRadius = (int) depth * 15;
-		color = Blur(color, screenPixelCoords, blurRadius);
 	}
 
 

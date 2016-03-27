@@ -68,7 +68,7 @@ class NYRenderer
 		float _OutlineThreshold = 40.f;
 
 		// param to reuse for debug
-		float _Temp = 50.f;
+		float _Temp = 1.f;
 
 		// Textures
 		// texture files
@@ -80,17 +80,21 @@ class NYRenderer
 		* Permet de créer un programme de shaders, a activer quand on veut
 		*/
 		// moved to public since useful to create program and loading/linking shaders easily
-		GLuint createProgram(char * filePixelShader, char * fileVertexShader)
+		GLuint createProgram(char * filePixelShader, char * fileVertexShader, char* fileGeometryShader)
 		{
 			GLuint fs = 0;
-			if (filePixelShader != NULL)
+			if (filePixelShader != nullptr)
 				fs = loadShader(GL_FRAGMENT_SHADER, filePixelShader);
 
 			GLuint vs = 0;
-			if (fileVertexShader != NULL)
+			if (fileVertexShader != nullptr)
 				vs = loadShader(GL_VERTEX_SHADER, fileVertexShader);
 
-			if (fs > 0 || vs > 0)
+			GLuint gs = 0;
+			if (fileGeometryShader != nullptr)
+				gs = loadShader(GL_GEOMETRY_SHADER, fileGeometryShader);
+
+			if (fs > 0 || vs > 0 || gs > 0)
 			{
 				GLuint prog = glCreateProgram();
 				if (fs > 0)
@@ -104,6 +108,13 @@ class NYRenderer
 					glAttachShader(prog, vs);
 					checkGlError("glAttachShader(prog, vs);");
 				}
+
+				if (gs > 0)
+				{
+					glAttachShader(prog, gs);
+					checkGlError("glAttachShader(prog, gs);");
+				}
+
 				glLinkProgram(prog);
 				checkGlError("glLinkProgram(prog);");
 
@@ -485,8 +496,9 @@ class NYRenderer
 		
 		void initShadersCube()
 		{
-			_ProgramCube = createProgram("shaders/pscube.glsl", "shaders/vscube.glsl");
-			_ProgramCubeGrass = createProgram("shaders/psgrass.glsl", "shaders/vscube.glsl");
+			_ProgramCube = createProgram("shaders/pscube.glsl", "shaders/vscube.glsl", nullptr);
+//			_ProgramCubeGrass = createProgram("shaders/psgrass.glsl", "shaders/vscube.glsl", "shaders/gsgrass.glsl");
+			_ProgramCubeGrass = createProgram("shaders/psgrass.glsl", "shaders/vscube.glsl", nullptr);
 		}
 
 		void initShadersPostProcess(void)

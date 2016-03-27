@@ -18,8 +18,8 @@ typedef uint8 NYAxis;
 #define NY_AXIS_Y 0x02
 #define NY_AXIS_Z 0x04
 
-#define MAT_SIZE 3 //en nombre de chunks
-#define MAT_HEIGHT 2 //en nombre de chunks
+#define MAT_SIZE 4 //en nombre de chunks
+#define MAT_HEIGHT 1 //en nombre de chunks
 #define MAT_SIZE_CUBES (MAT_SIZE * NYChunk::CHUNK_SIZE)
 #define MAT_HEIGHT_CUBES (MAT_HEIGHT * NYChunk::CHUNK_SIZE)
 
@@ -331,8 +331,8 @@ public :
 
 		// set camera et acceptable position
 		// do not look completely downward, deactivated for now (for an editor and not a character, maybe acceptable)
-		Game::Instance().g_renderer->_Camera->setPosition(NYVert3Df(12, 12, 50) * NYCube::CUBE_SIZE);
-		Game::Instance().g_renderer->_Camera->setLookAt(NYVert3Df(16, 16, 0) * NYCube::CUBE_SIZE);
+		Game::Instance().g_renderer->_Camera->setPosition(NYVert3Df(12, 12, 20) * NYCube::CUBE_SIZE);
+		Game::Instance().g_renderer->_Camera->setLookAt(NYVert3Df(24, 24, 18) * NYCube::CUBE_SIZE);
 		
 	}
 

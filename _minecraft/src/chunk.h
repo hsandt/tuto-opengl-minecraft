@@ -111,32 +111,46 @@ class NYChunk
 			if (cubeType == CUBE_GRASS)
 			{
 				glUseProgram(NYRenderer::getInstance()->_ProgramCubeGrass);
-				glEnable(GL_TEXTURE_2D);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, NYRenderer::getInstance()->_TexGrass->Texture);
+//				glEnable(GL_TEXTURE_2D);
+//				glActiveTexture(GL_TEXTURE0);
+//				glBindTexture(GL_TEXTURE_2D, NYRenderer::getInstance()->_TexGrass->Texture);
+//
+//				GLuint texLoc = glGetUniformLocation(NYRenderer::getInstance()->_ProgramCubeGrass, "Texture0");
+//				glUniform1i(texLoc, 0);
 
-				GLuint texLoc = glGetUniformLocation(NYRenderer::getInstance()->_ProgramCubeGrass, "Texture0");
-				glUniform1i(texLoc, 0);
+				NYColor ambientColor = NYCube::cubeAmbientColors[cubeType];
+				NYColor diffuseColor = NYCube::cubeDiffuseColors[cubeType];
+				NYColor specularColor = NYCube::cubeSpecularColors[cubeType];
+				float shininess = NYCube::cubeShininess[cubeType];
+
+				GLuint amb = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCubeGrass, "ambientColor");
+				GLuint diff = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCubeGrass, "diffuseColor");
+				GLuint spec = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCubeGrass, "specularColor");
+				GLuint shini = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCubeGrass, "shininess");
+				glUniform4f(amb, ambientColor.R, ambientColor.G, ambientColor.B, ambientColor.A);
+				glUniform3f(diff, diffuseColor.R, diffuseColor.G, diffuseColor.B);
+				glUniform3f(spec, specularColor.R, specularColor.G, specularColor.B);
+				glUniform1f(shini, shininess);
 			}
 			else
 			{
 				glUseProgram(NYRenderer::getInstance()->_ProgramCube);
-			}
 
-			// parameters that are common to all cubes of this type (no need for buffer array)
-			NYColor ambientColor = NYCube::cubeAmbientColors[cubeType];
-			NYColor diffuseColor = NYCube::cubeDiffuseColors[cubeType];
-			NYColor specularColor = NYCube::cubeSpecularColors[cubeType];
+				// parameters that are common to all cubes of this type (no need for buffer array)
+				NYColor ambientColor = NYCube::cubeAmbientColors[cubeType];
+				NYColor diffuseColor = NYCube::cubeDiffuseColors[cubeType];
+				NYColor specularColor = NYCube::cubeSpecularColors[cubeType];
+				float shininess = NYCube::cubeShininess[cubeType];
 			
-			GLuint amb = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "ambientColor");
-			GLuint diff = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "diffuseColor");
-			GLuint spec = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "specularColor");
-			GLuint shininess = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "shininess");
-			glUniform4f(amb, ambientColor.R, ambientColor.G, ambientColor.B, ambientColor.A);
-			glUniform3f(diff, diffuseColor.R, diffuseColor.G, diffuseColor.B);
-			glUniform3f(spec, specularColor.R, specularColor.G, specularColor.B);
-			glUniform1f(shininess, 5);
-
+				GLuint amb = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "ambientColor");
+				GLuint diff = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "diffuseColor");
+				GLuint spec = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "specularColor");
+				GLuint shini = glGetUniformLocation(Game::Instance().g_renderer->_ProgramCube, "shininess");
+				glUniform4f(amb, ambientColor.R, ambientColor.G, ambientColor.B, ambientColor.A);
+				glUniform3f(diff, diffuseColor.R, diffuseColor.G, diffuseColor.B);
+				glUniform3f(spec, specularColor.R, specularColor.G, specularColor.B);
+				glUniform1f(shini, shininess);
+			}
 
 			//On bind le buffer
 			glBindBuffer(GL_ARRAY_BUFFER, _WorldBuffers[cubeType]);
@@ -159,6 +173,8 @@ class NYChunk
 			// pointer on wave amplitude attribute data, so that earth and water blocks are drawn with the correct wave effect
 			glVertexAttribPointer(wave_factor_loc, NB_FLOAT_ATTR1, GL_FLOAT, GL_FALSE, 0, (void*)(nbVertices*SIZE_VERTEX + nbVertices*SIZE_NORMAL + nbVertices*SIZE_UV));
 
+//			glUseProgram(0);  // DEBUG: textures alone work!
+
 			//On demande le dessin
 			glDrawArrays(GL_QUADS, 0, nbVertices);
 
@@ -176,7 +192,8 @@ class NYChunk
 
 			if (cubeType == CUBE_GRASS)
 			{
-				glDisable(GL_TEXTURE_2D);
+//				glBindTexture(GL_TEXTURE_2D, 0);
+//				glDisable(GL_TEXTURE_2D);
 			}
 
 			glUseProgram(0);

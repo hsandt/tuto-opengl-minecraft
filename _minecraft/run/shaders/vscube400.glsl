@@ -1,6 +1,8 @@
-varying vec3 normal;
-varying vec3 vertex_to_light_vector;
-varying vec3 vertex_to_camera_vector;
+#version 430 core
+
+out vec3 normal;
+out vec3 vertex_to_light_vector;
+out vec3 vertex_to_camera_vector;
 
 uniform float elapsed;
 uniform mat4 invertView;
@@ -9,7 +11,13 @@ uniform float wave_amplitude;
 uniform float normalized_wavelength;
 uniform float wave_period;
 
-attribute float wave_factor;  // 0 for no wave
+in float wave_factor;  // 0 for no wave
+
+out VertexData
+{
+    vec3 normal;
+    vec4 color;
+} vertex[];
 
 void main()
 {
@@ -20,7 +28,9 @@ void main()
 	// 2pi*(x/L - t/T)
 	float angle = 2 * 3.14f * ((worldVertex.x / 10.f) / normalized_wavelength - elapsed / wave_period);
 	worldVertex.z += wave_factor * wave_amplitude * sin(angle);
+	// OUT in VIEW coords!!!
 	gl_Position = viewProjectionMatrix * worldVertex;
+
 	// z = A*sin(a*x+b)
 	// derivative is z' = A*a*cos(a*x+b)
 	// positive tangent is (1, z') = (1, A*a*cos(a*x+b))
@@ -43,7 +53,6 @@ void main()
 	else
 	{
 		normal = gl_Normal;
-		// normal = gl_NormalMatrix * normal;  // for some reason, needed here to cut specular
 	}
 
 	// for now, keep world normal... will se if need to convert to view coords
@@ -51,8 +60,9 @@ void main()
 	// Transforming The Normal To ModelView-Space
 	// ?? model matrix with rotation only should be enough?? if using view coord for normal,
 	// light direction should also be or the dot product does not make sense!!
-	// normal = gl_NormalMatrix * normal;
+	// normal = gl_NormalMatrix * gl_Normal;
 
+	// normal = invertView * normal;  // and without translation... or dot product will be wrong
 
 	//Direction lumiere
 	// !! directional light only, subtract by vertex position for point light

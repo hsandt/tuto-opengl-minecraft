@@ -273,8 +273,9 @@ bool Game::Init(int argc, char* argv[])
 	g_screen_manager->setActiveScreen(g_screen_jeu);
 
 	//Init Camera
-	g_renderer->_Camera->setPosition(NYVert3Df(0, 0, 240));
-	g_renderer->_Camera->setLookAt(NYVert3Df(1, 1, 320));
+	// overriden by init_world
+	g_renderer->_Camera->setPosition(NYVert3Df(0, 0, 0));
+	g_renderer->_Camera->setLookAt(NYVert3Df(1, 1, 1));
 
 	//Fin init moteur
 
@@ -473,6 +474,25 @@ void Game::renderObjects(void)
 	{
 		glUseProgram(programID);
 
+		// grass only, set only once
+		if (programID == g_renderer->_ProgramCubeGrass)
+		{
+			// for grass only, set only once
+			NYColor ambientColor = NYCube::cubeAmbientColors[CUBE_GRASS];
+			NYColor diffuseColor = NYCube::cubeDiffuseColors[CUBE_GRASS];
+			NYColor specularColor = NYCube::cubeSpecularColors[CUBE_GRASS];
+			float shininess = NYCube::cubeShininess[CUBE_GRASS];
+
+			GLuint amb = glGetUniformLocation(programID, "ambientColor");
+			GLuint diff = glGetUniformLocation(programID, "diffuseColor");
+			GLuint spec = glGetUniformLocation(programID, "specularColor");
+			GLuint shini = glGetUniformLocation(programID, "shininess");
+			glUniform4f(amb, ambientColor.R, ambientColor.G, ambientColor.B, ambientColor.A);
+			glUniform3f(diff, diffuseColor.R, diffuseColor.G, diffuseColor.B);
+			glUniform3f(spec, specularColor.R, specularColor.G, specularColor.B);
+			glUniform1f(shini, shininess);
+		}
+
 		GLuint elap = glGetUniformLocation(programID, "elapsed");
 		glUniform1f(elap, NYRenderer::_DeltaTimeCumul);
 
@@ -497,7 +517,6 @@ void Game::renderObjects(void)
 
 		glUseProgram(0);
 	}
-
 
 	glPushMatrix();
 	//　g_world->render_world_old_school();
@@ -736,7 +755,8 @@ void Game::mouseMoveFunction(int x, int y, bool pressed)
 		{
 			// coords are top-left so for negative delta Y, move UP!
 			g_renderer->_Camera->rotate(deltaMouseX * cameraXRotateMouseRatio);
-			g_renderer->_Camera->move(g_renderer->_Camera->_Direction * (-deltaMouseY) * cameraXYMotionMouseRatio);
+			// I tested and prefer forward/backward motion projected on XY rather than camera _Direction
+			g_renderer->_Camera->move(g_renderer->_Camera->_ProjectedForward * (-deltaMouseY) * cameraXYMotionMouseRatio);
 		}
 
 		// translate in camera XZ with middle button hold
@@ -763,6 +783,8 @@ void Game::mouseMoveFunction(int x, int y, bool pressed)
 		cameraYRotateMouseRatio = -g_slider_cameraYRotateMouseRatio->Value;
 		cameraZoomWheelRatio = g_slider_cameraZoomWheelRatio->Value;
 		cameraXYMotionMouseRatio = g_slider_cameraXYMotionMouseRatio->Value;
+		cameraXZMotionMouseRatio = g_slider_cameraXZMotionMouseRatio->Value;
+		cameraKeyboardMotionSpeed = g_slider_cameraKeyboardMotionSpeed->Value;
 		g_renderer->_Ambient = g_slider_ambient->Value;
 		g_renderer->_Diffuse = g_slider_diffuse->Value;
 		g_renderer->_Specular = g_slider_specular->Value;

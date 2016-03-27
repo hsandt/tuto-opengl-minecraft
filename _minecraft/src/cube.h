@@ -22,6 +22,7 @@ class NYCube
 		static NYColor cubeAmbientColors[3];
 		static NYColor cubeDiffuseColors[3];
 		static NYColor cubeSpecularColors[3];
+		static float cubeShininess[3];
 
 		NYCube()
 		{

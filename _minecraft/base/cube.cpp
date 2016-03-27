@@ -21,3 +21,9 @@ NYColor NYCube::cubeSpecularColors[3] = {
 	NYColor(0.f / 255.f, 0.f / 255.f, 0.f / 255.f, 1.f),
 	NYColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f)
 };
+
+float NYCube::cubeShininess[3] = {
+	1,
+	1,
+	5
+};

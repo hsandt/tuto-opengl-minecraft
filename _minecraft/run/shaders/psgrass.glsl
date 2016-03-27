@@ -15,6 +15,9 @@ uniform sampler2D Texture0;
 
 void main()
 {
+	// cannot make textures work!!
+	// vec4 color = texture2D( Texture0 , vec2( gl_TexCoord[0] ) );
+
 	// Scaling The Input Vector To Length 1
 	vec3 normalized_normal = normalize(normal);
 	vec3 normalized_vertex_to_light_vector = normalize(vertex_to_light_vector);
@@ -32,4 +35,6 @@ void main()
 	// Calculating The Final Color
 	gl_FragColor.rgb = ambientColor.rgb * ambientLevel + diffuseColor * DiffuseTerm * diffuseLevel + specularColor * SpecularTerm * specularLevel;
 	gl_FragColor.a = ambientColor.a;
+
+	// gl_FragColor = color;
 }
